@@ -1,117 +1,131 @@
 [build-system]
-requires = ["hatchling"]
 build-backend = "hatchling.build"
+requires = [ "hatch-vcs", "hatchling" ]
 
 [project]
 name = "tap-coda"
-version = "0.0.1"
 description = "Singer tap for Coda, built with the Meltano SDK for Singer Taps."
-authors = [{ name = "Edgar Ramírez-Mondragón", email = "edgarrm358@gmail.com" }]
-requires-python = ">=3.13"
-license = "Apache-2.0"
-keywords = ["ELT", "Coda"]
-classifiers = [
-    "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3.14",
+readme = "README.md"
+keywords = [
+  "Coda",
+  "ELT",
 ]
-dependencies = ["singer-sdk~=0.54.0a8"]
-
+license = "Apache-2.0"
+requires-python = ">=3.13"
+classifiers = [
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+]
+dynamic = [ "version" ]
+dependencies = [
+  "singer-sdk~=0.54.2",
+]
+[[project.authors]]
+name = "Edgar Ramírez-Mondragón"
+email = "edgarrm358@gmail.com"
 [project.scripts]
 tap-coda = "tap_coda.tap:TapCoda.cli"
 
 [dependency-groups]
-dev = [{ include-group = "testing" }, { include-group = "typing" }]
-testing = ["singer-sdk[testing]", "syrupy>=5.0.0"]
+dev = [
+  { include-group = "testing" },
+  { include-group = "typing" },
+]
+testing = [
+  "deptry>=0.24",
+  "singer-sdk[testing]",
+  "syrupy>=5",
+]
 typing = [
-    { include-group = "testing" },
-    "mypy>=1.19",
-    "ty>=0.0.21",
+  "mypy>=1.19",
+  "ty>=0.0.21",
+  { include-group = "testing" },
 ]
 
+[tool.hatch]
+[tool.hatch.version]
+fallback-version = "0.1.0.dev0"
+source = "vcs"
+
+[tool.ruff]
+required-version = ">=0.15"
+line-length = 88
+preview = true
+[tool.ruff.lint]
+select = [ "ALL" ]
+ignore = [
+  "COM812", # missing-trailing-comma
+  "DJ",     # flake8-django
+  "FIX002", # line-contains-todo
+  "ISC001", # single-line-implicit-string-concatenation
+]
+per-file-ignores."noxfile.py" = [ "ANN" ]
+per-file-ignores."tests/*" = [ "ANN", "S101" ]
+unfixable = [
+  "ERA001", # commented-out-code
+]
+flake8-annotations.allow-star-arg-any = true
+isort.known-first-party = [ "tap_coda" ]
+isort.required-imports = [ "from __future__ import annotations" ]
+pydocstyle.convention = "google"
+
+[tool.pyproject-fmt]
+table_format = "long"
+
 [tool.mypy]
-enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
+enable_error_code = [
+  "exhaustive-match",
+  "ignore-without-code",
+  "redundant-expr",
+  "truthy-bool",
+]
 strict = true
+warn_no_return = true
 warn_redundant_casts = true
+warn_return_any = true
 warn_unreachable = true
 warn_unused_configs = true
 warn_unused_ignores = true
 
 [tool.pytest]
-addopts = ["-ra"]
+addopts = [ "-ra" ]
 filterwarnings = [
-    "error",
-    "once:Fields in transformed catalog but not in records:UserWarning",
+  "error",
+  "once:Fields in transformed catalog but not in records:UserWarning",
 ]
 log_level = "INFO"
 minversion = "9"
 strict = true
-testpaths = ["tests"]
-
-[tool.ruff]
-line-length = 88
-preview = true
-required-version = ">=0.15"
-
-[tool.ruff.lint]
-ignore = [
-    "DJ",     # flake8-django
-    "FIX002", # line-contains-todo
-    "COM812", # missing-trailing-comma
-    "ISC001", # single-line-implicit-string-concatenation
-]
-select = ["ALL"]
-unfixable = [
-    "ERA001", # commented-out-code
-]
-
-[tool.ruff.lint.flake8-annotations]
-allow-star-arg-any = true
-
-[tool.ruff.lint.isort]
-known-first-party = ["tap_coda"]
-required-imports = ["from __future__ import annotations"]
-
-[tool.ruff.lint.per-file-ignores]
-"noxfile.py" = ["ANN"]
-"tests/*" = ["ANN", "S101"]
-
-[tool.ruff.lint.pydocstyle]
-convention = "google"
+testpaths = [ "tests" ]
 
 [tool.tox]
-min_version = "4.43"
-requires = ["tox>=4.22", "tox-uv"]
-env_list = ["typing", "py314", "py313"]
+requires = [
+  "tox>=4.53",
+  "tox-uv>=1.35",
+]
+env_list = [
+  "dependencies",
+  "typing",
+  { prefix = "3.", start = 13 },
+]
+[tool.tox.env.dependencies]
+description = "check for unused, missing and transitive dependencies"
+labels = [ "check" ]
+dependency_groups = [ "testing" ]
+commands = [ [ "deptry", "." ] ]
+[tool.tox.env.typing]
+description = "type checks"
+labels = [ "check" ]
+dependency_groups = [ "testing", "typing" ]
+commands = [
+  [ "mypy", { replace = "posargs", default = [ "tap_coda", "tests" ], extend = true } ],
+  [ "ty", "check", { replace = "posargs", default = [ "tap_coda", "tests" ], extend = true } ]
+]
 
 [tool.tox.env_run_base]
+description = "run tests on Python {py_dot_ver}"
 runner = "uv-venv-lock-runner"
-pass_env = ["GITHUB_*", "TAP_CODA_*"]
-dependency_groups = ["testing"]
-commands = [
-    [
-        "pytest",
-        { replace = "posargs", default = [
-            "tests",
-        ], extend = true },
-    ],
-]
-
-[tool.tox.env.typing]
-dependency_groups = ["testing", "typing"]
-commands = [
-    [
-        "mypy",
-        { replace = "posargs", default = [
-            "tap_coda",
-            "tests",
-        ], extend = true },
-    ],
-    [
-        "ty",
-        "check",
-        { replace = "posargs", default = [
-            "tap_coda",
-            "tests",
-        ], extend = true },
-    ],
-]
+pass_env = [ "GITHUB_*", "TAP_CODA_*" ]
+dependency_groups = [ "testing" ]
+commands = [ [ "pytest", { replace = "posargs", default = [ "tests" ], extend = true } ] ]

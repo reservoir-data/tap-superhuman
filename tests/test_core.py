@@ -16,6 +16,6 @@ TestTapCoda = get_tap_test_class(
     suite_config=SuiteConfig(
         ignore_no_records=True,
     ),
-    # TODO: Enable this test after the SDK handles AllOf properties.  # noqa: TD002, TD003, E501
+    # TODO: Enable this test after the SDK handles AllOf properties.  # noqa: TD002, TD003
     include_stream_attribute_tests=True,
 )
