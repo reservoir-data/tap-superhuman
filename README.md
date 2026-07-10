@@ -1,6 +1,6 @@
-# `tap-coda`
+# `tap-superhuman`
 
-`tap-coda` is a Singer tap for Coda, built with the Meltano SDK for Singer Taps.
+`tap-superhuman` is a Singer tap for Superhuman Docs (formerly Coda), built with the Meltano SDK for Singer Taps.
 
 Built with the [Meltano SDK](https://sdk.meltano.com) for Singer Taps and Targets.
 
@@ -17,22 +17,22 @@ Built with the [Meltano SDK](https://sdk.meltano.com) for Singer Taps and Target
 |:-----------|:--------:|:-------:|:------------|
 | auth_token | True | None | The token to authenticate against the API service. |
 
-A full list of supported settings and capabilities is available by running: `tap-coda --about`
+A full list of supported settings and capabilities is available by running: `tap-superhuman --about`
 
 ### Source Authentication and Authorization
 
-See the documentation: https://coda.io/developers/apis/v1#section/Authentication.
+See the documentation: https://docs.superhuman.com/developers/apis/v1#section/Authentication.
 
 ## Usage
 
-You can easily run `tap-coda` by itself or in a pipeline using [Meltano](https://meltano.com/).
+You can easily run `tap-superhuman` by itself or in a pipeline using [Meltano](https://meltano.com/).
 
 ### Executing the Tap Directly
 
 ```bash
-tap-coda --version
-tap-coda --help
-tap-coda --config CONFIG --discover > ./catalog.json
+tap-superhuman --version
+tap-superhuman --help
+tap-superhuman --config CONFIG --discover > ./catalog.json
 ```
 
 ## Developer Resources
@@ -46,16 +46,16 @@ poetry install
 
 ### Create and Run Tests
 
-Create tests within the `tap_coda/tests` subfolder and then run:
+Create tests within the `tap_superhuman/tests` subfolder and then run:
 
 ```bash
 poetry run pytest
 ```
 
-You can also test the `tap-coda` CLI interface directly using `poetry run`:
+You can also test the `tap-superhuman` CLI interface directly using `poetry run`:
 
 ```bash
-poetry run tap-coda --help
+poetry run tap-superhuman --help
 ```
 
 ### Testing with [Meltano](https://www.meltano.com)
@@ -69,7 +69,7 @@ Install Meltano (if you haven't already) and any needed plugins:
 # Install meltano
 pipx install meltano
 # Initialize meltano within this directory
-cd tap-coda
+cd tap-superhuman
 meltano install
 ```
 
@@ -77,9 +77,9 @@ Now you can test and orchestrate using Meltano:
 
 ```bash
 # Test invocation:
-meltano invoke tap-coda --version
+meltano invoke tap-superhuman --version
 # OR run a test `elt` pipeline:
-meltano elt tap-coda target-jsonl
+meltano elt tap-superhuman target-jsonl
 ```
 
 ### SDK Dev Guide

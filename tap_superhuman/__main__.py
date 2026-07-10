@@ -2,6 +2,6 @@
 
 from __future__ import annotations
 
-from tap_coda.tap import TapCoda
+from tap_superhuman.tap import TapSuperhuman
 
-TapCoda.cli()
+TapSuperhuman.cli()

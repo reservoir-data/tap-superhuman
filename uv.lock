@@ -767,7 +767,7 @@ wheels = [
 ]
 
 [[package]]
-name = "tap-coda"
+name = "tap-superhuman"
 source = { editable = "." }
 dependencies = [
     { name = "singer-sdk" },

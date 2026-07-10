@@ -1,1 +1,1 @@
-"""Test suite for tap-coda."""  # noqa: CPY001
+"""Test suite for tap-superhuman."""  # noqa: CPY001

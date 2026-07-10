@@ -1,4 +1,4 @@
-"""Coda tap class."""  # noqa: CPY001
+"""Superhuman Docs tap class."""  # noqa: CPY001
 
 from __future__ import annotations
 
@@ -7,16 +7,16 @@ from typing import TYPE_CHECKING, override
 from singer_sdk import Tap
 from singer_sdk import typing as th
 
-from tap_coda import streams
+from tap_superhuman import streams
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
-class TapCoda(Tap):
-    """Singer tap for Coda, built with the Meltano SDK for Singer Taps."""
+class TapSuperhuman(Tap):
+    """Singer tap for Superhuman Docs, built with the Meltano SDK for Singer Taps."""
 
-    name = "tap-coda"
+    name = "tap-superhuman"
     config_jsonschema = th.PropertiesList(
         th.Property(
             "auth_token",
@@ -28,7 +28,7 @@ class TapCoda(Tap):
     ).to_dict()
 
     @override
-    def discover_streams(self) -> Sequence[streams.CodaStream]:
+    def discover_streams(self) -> Sequence[streams.SuperhumanStream]:
         return [
             streams.Docs(tap=self),
             streams.Pages(tap=self),

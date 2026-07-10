@@ -3,12 +3,13 @@ build-backend = "hatchling.build"
 requires = [ "hatch-vcs", "hatchling" ]
 
 [project]
-name = "tap-coda"
-description = "Singer tap for Coda, built with the Meltano SDK for Singer Taps."
+name = "tap-superhuman"
+description = "Singer tap for Superhuman Docs, built with the Meltano SDK for Singer Taps."
 readme = "README.md"
 keywords = [
   "Coda",
   "ELT",
+  "Superhuman",
 ]
 license = "Apache-2.0"
 requires-python = ">=3.13"
@@ -25,7 +26,7 @@ dependencies = [
 name = "Edgar Ramírez-Mondragón"
 email = "edgarrm358@gmail.com"
 [project.scripts]
-tap-coda = "tap_coda.tap:TapCoda.cli"
+tap-superhuman = "tap_superhuman.tap:TapSuperhuman.cli"
 
 [dependency-groups]
 dev = [
@@ -66,7 +67,7 @@ unfixable = [
   "ERA001", # commented-out-code
 ]
 flake8-annotations.allow-star-arg-any = true
-isort.known-first-party = [ "tap_coda" ]
+isort.known-first-party = [ "tap_superhuman" ]
 isort.required-imports = [ "from __future__ import annotations" ]
 pydocstyle.convention = "google"
 
@@ -74,6 +75,11 @@ pydocstyle.convention = "google"
 table_format = "long"
 
 [tool.mypy]
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_return_any = true
+warn_unreachable = true
 enable_error_code = [
   "exhaustive-match",
   "ignore-without-code",
@@ -81,12 +87,7 @@ enable_error_code = [
   "truthy-bool",
 ]
 strict = true
-warn_no_return = true
-warn_redundant_casts = true
-warn_return_any = true
-warn_unreachable = true
 warn_unused_configs = true
-warn_unused_ignores = true
 
 [tool.pytest]
 addopts = [ "-ra" ]
@@ -111,21 +112,20 @@ env_list = [
 ]
 [tool.tox.env.dependencies]
 description = "check for unused, missing and transitive dependencies"
-labels = [ "check" ]
 dependency_groups = [ "testing" ]
 commands = [ [ "deptry", "." ] ]
+labels = [ "check" ]
 [tool.tox.env.typing]
 description = "type checks"
-labels = [ "check" ]
 dependency_groups = [ "testing", "typing" ]
 commands = [
-  [ "mypy", { replace = "posargs", default = [ "tap_coda", "tests" ], extend = true } ],
-  [ "ty", "check", { replace = "posargs", default = [ "tap_coda", "tests" ], extend = true } ]
+  [ "mypy", { replace = "posargs", default = [ "tap_superhuman", "tests" ], extend = true } ],
+  [ "ty", "check", { replace = "posargs", default = [ "tap_superhuman", "tests" ], extend = true } ]
 ]
-
+labels = [ "check" ]
 [tool.tox.env_run_base]
-description = "run tests on Python {py_dot_ver}"
 runner = "uv-venv-lock-runner"
-pass_env = [ "GITHUB_*", "TAP_CODA_*" ]
+description = "run tests on Python {py_dot_ver}"
 dependency_groups = [ "testing" ]
+pass_env = [ "GITHUB_*", "TAP_SUPERHUMAN_*" ]
 commands = [ [ "pytest", { replace = "posargs", default = [ "tests" ], extend = true } ] ]

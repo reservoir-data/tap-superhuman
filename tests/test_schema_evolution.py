@@ -21,7 +21,7 @@ def test_catalog_changes(
     subtests: pytest.Subtests,
 ) -> None:
     """Fail if the catalog has changed."""
-    result = pytester.run("tap-coda", "--discover")
+    result = pytester.run("tap-superhuman", "--discover")
     assert result.ret == 0, "Tap discovery failed"
 
     snapshot_json = snapshot.with_defaults(extension_class=JSONSnapshotExtension)
