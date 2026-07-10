@@ -6,12 +6,12 @@ import datetime
 
 from singer_sdk.testing import SuiteConfig, get_tap_test_class
 
-from tap_coda.tap import TapCoda
+from tap_superhuman.tap import TapSuperhuman
 
 SAMPLE_CONFIG = {"start_date": datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d")}
 
-TestTapCoda = get_tap_test_class(
-    TapCoda,
+TestTapSuperhuman = get_tap_test_class(
+    TapSuperhuman,
     config=SAMPLE_CONFIG,
     suite_config=SuiteConfig(
         ignore_no_records=True,

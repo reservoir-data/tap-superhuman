@@ -1,4 +1,4 @@
-name: Update Catalog for Coda
+name: Update Catalog for Superhuman Docs
 
 on:
   workflow_dispatch:

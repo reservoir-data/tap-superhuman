@@ -1,4 +1,4 @@
-"""Stream type classes for tap-coda."""  # noqa: CPY001
+"""Stream type classes for tap-superhuman."""  # noqa: CPY001
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from singer_sdk import OpenAPISchema, StreamSchema
 from singer_sdk.authenticators import BearerTokenAuthenticator
 from singer_sdk.streams import RESTStream
 
-from tap_coda import openapi
+from tap_superhuman import openapi
 
 if TYPE_CHECKING:
     from singer_sdk.helpers.types import Context, Record
@@ -18,8 +18,8 @@ if TYPE_CHECKING:
 OPENAPI_SCHEMA = OpenAPISchema[str](resources.files(openapi).joinpath("openapi.json"))
 
 
-class CodaStream(RESTStream[str]):
-    """Coda stream class."""
+class SuperhumanStream(RESTStream[str]):
+    """Superhuman Docs stream class."""
 
     openapi_ref: str
 
@@ -40,7 +40,7 @@ class CodaStream(RESTStream[str]):
         context: Context | None,
         next_page_token: str | None,
     ) -> dict[str, Any]:
-        """Get URL parameters for the Coda API.
+        """Get URL parameters for the Superhuman Docs API.
 
         Returns:
             A dictionary of URL parameters.
@@ -53,8 +53,8 @@ class CodaStream(RESTStream[str]):
         return params
 
 
-class Docs(CodaStream):
-    """Coda documents."""
+class Docs(SuperhumanStream):
+    """Superhuman Docs documents."""
 
     name = "docs"
     path = "/docs"
@@ -66,7 +66,7 @@ class Docs(CodaStream):
         super().__init__(*args, **kwargs)
         self.schema["properties"]["sourceDoc"] = {
             "x-schema-name": "DocReference",
-            "description": "Reference to a Coda doc.",
+            "description": "Reference to a Superhuman doc.",
             "type": "object",
             "required": [
                 "id",
@@ -78,7 +78,7 @@ class Docs(CodaStream):
             "properties": {
                 "id": {
                     "type": "string",
-                    "description": "ID of the Coda doc.",
+                    "description": "ID of the Superhuman doc.",
                     "example": "AbCDeFGH",
                 },
                 "type": {
@@ -92,13 +92,13 @@ class Docs(CodaStream):
                 "href": {
                     "type": "string",
                     "format": "url",
-                    "description": "API link to the Coda doc.",
+                    "description": "API link to the Superhuman doc.",
                     "example": "https://coda.io/apis/v1/docs/AbCDeFGH",
                 },
                 "browserLink": {
                     "type": "string",
                     "format": "url",
-                    "description": "Browser-friendly link to the Coda doc.",
+                    "description": "Browser-friendly link to the Superhuman doc.",
                     "example": "https://coda.io/d/_dAbCDeFGH",
                 },
             },
@@ -118,7 +118,7 @@ class Docs(CodaStream):
         return {"docId": record["id"]}
 
 
-class _DocChild(CodaStream):
+class _DocChild(SuperhumanStream):
     parent_stream_type = Docs
 
     @override
@@ -137,7 +137,7 @@ class _DocChild(CodaStream):
 
 
 class Pages(_DocChild):
-    """Coda document pages."""
+    """Superhuman Docs document pages."""
 
     name = "pages"
     path = "/docs/{docId}/pages"
@@ -145,7 +145,7 @@ class Pages(_DocChild):
 
 
 class Controls(_DocChild):
-    """Coda document controls."""
+    """Superhuman Docs document controls."""
 
     name = "controls"
     path = "/docs/{docId}/controls"
@@ -153,7 +153,7 @@ class Controls(_DocChild):
 
 
 class Formulas(_DocChild):
-    """Coda document pages."""
+    """Superhuman Docs document pages."""
 
     name = "formulas"
     path = "/docs/{docId}/formulas"
@@ -165,17 +165,17 @@ class Formulas(_DocChild):
         super().__init__(*args, **kwargs)
         del self.schema["properties"]["value"]
         self.schema["properties"]["value__string"] = {
-            "description": "A Coda result or entity expressed as a primitive type.",
+            "description": "A Superhuman result or entity expressed as a primitive type.",  # ruff:ignore[line-too-long]
             "type": "string",
             "example": "$12.34",
         }
         self.schema["properties"]["value__number"] = {
-            "description": "A Coda result or entity expressed as a primitive type.",
+            "description": "A Superhuman result or entity expressed as a primitive type.",  # ruff:ignore[line-too-long]
             "type": "number",
             "example": 12.34,
         }
         self.schema["properties"]["value__boolean"] = {
-            "description": "A Coda result or entity expressed as a primitive type.",
+            "description": "A Superhuman result or entity expressed as a primitive type.",  # ruff:ignore[line-too-long]
             "type": "boolean",
             "example": True,
         }
@@ -202,7 +202,7 @@ class Formulas(_DocChild):
 
 
 class Permissions(_DocChild):
-    """Coda document permissions."""
+    """Superhuman Docs document permissions."""
 
     name = "permissions"
     path = "/docs/{docId}/acl/permissions"
@@ -216,7 +216,7 @@ class Permissions(_DocChild):
 
 
 class Tables(_DocChild):
-    """Coda document tables."""
+    """Superhuman Docs document tables."""
 
     name = "tables"
     path = "/docs/{docId}/tables"
@@ -239,7 +239,7 @@ class Tables(_DocChild):
         }
 
 
-class _TableChild(CodaStream):
+class _TableChild(SuperhumanStream):
     parent_stream_type = Tables
 
     @override
@@ -253,7 +253,7 @@ class _TableChild(CodaStream):
 
 
 class Columns(_TableChild):
-    """Coda document table columns."""
+    """Superhuman Docs document table columns."""
 
     name = "columns"
     path = "/docs/{docId}/tables/{tableIdOrName}/columns"
@@ -267,7 +267,7 @@ class Columns(_TableChild):
 
 
 class Rows(_TableChild):
-    """Coda document table rows."""
+    """Superhuman Docs document table rows."""
 
     name = "rows"
     path = "/docs/{docId}/tables/{tableIdOrName}/rows"

@@ -1,4 +1,4 @@
-name: Test tap-coda
+name: Test tap-superhuman
 
 permissions:
   contents: read
@@ -58,7 +58,7 @@ jobs:
         version: ${{ env.UV_VERSION }}
     - name: Run
       env:
-        TAP_CODA_AUTH_TOKEN: ${{ secrets.TAP_CODA_AUTH_TOKEN }}
+        TAP_SUPERHUMAN_AUTH_TOKEN: ${{ secrets.TAP_CODA_AUTH_TOKEN }}
         MATRIX_PYTHON_VERSION: ${{ matrix.python-version }}
       run: >
         uvx

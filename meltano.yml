@@ -3,8 +3,8 @@ send_anonymous_usage_stats: false
 project_id: 7597513c-48d9-4deb-a188-41a7aefbbbc5
 plugins:
   extractors:
-  - name: tap-coda
-    namespace: tap_coda
+  - name: tap-superhuman
+    namespace: tap_superhuman
     pip_url: -e .
     capabilities:
     - catalog
@@ -12,7 +12,7 @@ plugins:
     settings:
     - name: auth_token
       kind: password
-      description: Coda Auth Token
+      description: Superhuman Docs Auth Token
   loaders:
   - name: target-jsonl
     variant: andyh1203

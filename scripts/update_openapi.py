@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""Update the OpenAPI schema from the Coda API.
+"""Update the OpenAPI schema from the Superhuman Docs API.
 
 Copyright (c) 2025 Edgar Ramírez-Mondragón
 """
@@ -15,7 +15,7 @@ import sys
 import urllib.request
 
 OPENAPI_URL = "https://coda.io/apis/v1/openapi.json"
-PATH = "tap_coda/openapi/openapi.json"
+PATH = "tap_superhuman/openapi/openapi.json"
 
 logging.basicConfig(format="%(levelname)s - %(message)s", level=logging.INFO)
 logger = logging.getLogger()
