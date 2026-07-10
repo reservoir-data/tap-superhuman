@@ -211,10 +211,10 @@
       },
       "value": {
         "additionalProperties": false,
-        "description": "A Coda result or entity expressed as a primitive type, or array of primitive types.",
+        "description": "A Superhuman Docs result or entity expressed as a primitive type, or array of primitive types.",
         "oneOf": [
           {
-            "description": "A Coda result or entity expressed as a primitive type.",
+            "description": "A Superhuman Docs result or entity expressed as a primitive type.",
             "oneOf": [
               {
                 "example": "$12.34",
@@ -235,7 +235,7 @@
             "items": {
               "oneOf": [
                 {
-                  "description": "A Coda result or entity expressed as a primitive type.",
+                  "description": "A Superhuman Docs result or entity expressed as a primitive type.",
                   "oneOf": [
                     {
                       "example": "$12.34",
@@ -254,7 +254,7 @@
                 },
                 {
                   "items": {
-                    "description": "A Coda result or entity expressed as a primitive type.",
+                    "description": "A Superhuman Docs result or entity expressed as a primitive type.",
                     "oneOf": [
                       {
                         "example": "$12.34",

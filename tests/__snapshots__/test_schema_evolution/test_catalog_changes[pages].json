@@ -444,7 +444,7 @@
               ]
             },
             "additionalType": {
-              "description": "An identifier of additional type info specific to Coda that may not be present in a schema.org taxonomy,\n",
+              "description": "An identifier of additional type info specific to Superhuman Docs that may not be present in a schema.org taxonomy,\n",
               "type": [
                 "string",
                 "null"
@@ -580,7 +580,7 @@
             ]
           },
           "additionalType": {
-            "description": "An identifier of additional type info specific to Coda that may not be present in a schema.org taxonomy,\n",
+            "description": "An identifier of additional type info specific to Superhuman Docs that may not be present in a schema.org taxonomy,\n",
             "type": [
               "string",
               "null"
@@ -816,7 +816,7 @@
             ]
           },
           "additionalType": {
-            "description": "An identifier of additional type info specific to Coda that may not be present in a schema.org taxonomy,\n",
+            "description": "An identifier of additional type info specific to Superhuman Docs that may not be present in a schema.org taxonomy,\n",
             "type": [
               "string",
               "null"

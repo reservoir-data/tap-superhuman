@@ -468,10 +468,10 @@
   "replication_method": "FULL_TABLE",
   "schema": {
     "additionalProperties": false,
-    "description": "Metadata about a Coda doc.",
+    "description": "Metadata about a document.",
     "properties": {
       "browserLink": {
-        "description": "Browser-friendly link to the Coda doc.",
+        "description": "Browser-friendly link to the document.",
         "format": "url",
         "type": [
           "string",
@@ -488,7 +488,7 @@
       },
       "docSize": {
         "additionalProperties": false,
-        "description": "The number of components within a Coda doc.",
+        "description": "The number of components within a document.",
         "properties": {
           "overApiSizeLimit": {
             "description": "If true, indicates that the doc is over the API size limit.",
@@ -532,7 +532,7 @@
       },
       "folder": {
         "additionalProperties": false,
-        "description": "Reference to a Coda folder.",
+        "description": "Reference to a Superhuman Docs folder.",
         "properties": {
           "browserLink": {
             "description": "Browser-friendly link to the folder.",
@@ -543,7 +543,7 @@
             ]
           },
           "id": {
-            "description": "ID of the Coda folder.",
+            "description": "ID of the Superhuman Docs folder.",
             "type": [
               "string",
               "null"
@@ -576,14 +576,14 @@
       },
       "folderId": {
         "deprecated": true,
-        "description": "ID of the Coda folder containing this doc.",
+        "description": "ID of the Superhuman Docs folder containing this document.",
         "type": [
           "string",
           "null"
         ]
       },
       "href": {
-        "description": "API link to the Coda doc.",
+        "description": "API link to the document.",
         "format": "url",
         "type": [
           "string",
@@ -628,7 +628,7 @@
         ]
       },
       "id": {
-        "description": "ID of the Coda doc.",
+        "description": "ID of the document.",
         "type": "string"
       },
       "name": {
@@ -706,7 +706,7 @@
             ]
           },
           "earnCredit": {
-            "description": "If true, new users may be required to sign in to view content within this document. You will receive Coda credit for each user who signs up via your doc.\n",
+            "description": "If true, new users may be required to sign in to view content within this document. You will receive Superhuman Docs credit for each user who signs up via your document.\n",
             "type": [
               "boolean",
               "null"
@@ -741,10 +741,10 @@
       },
       "sourceDoc": {
         "additionalProperties": false,
-        "description": "Reference to a Coda doc.",
+        "description": "Reference to a document.",
         "properties": {
           "browserLink": {
-            "description": "Browser-friendly link to the Coda doc.",
+            "description": "Browser-friendly link to the document.",
             "format": "url",
             "type": [
               "string",
@@ -752,7 +752,7 @@
             ]
           },
           "href": {
-            "description": "API link to the Coda doc.",
+            "description": "API link to the document.",
             "format": "url",
             "type": [
               "string",
@@ -760,7 +760,7 @@
             ]
           },
           "id": {
-            "description": "ID of the Coda doc.",
+            "description": "ID of the document.",
             "type": [
               "string",
               "null"
@@ -802,10 +802,10 @@
       },
       "workspace": {
         "additionalProperties": false,
-        "description": "Reference to a Coda workspace.",
+        "description": "Reference to a Superhuman Docs workspace.",
         "properties": {
           "browserLink": {
-            "description": "Browser-friendly link to the Coda workspace.",
+            "description": "Browser-friendly link to the Superhuman Docs workspace.",
             "format": "url",
             "type": [
               "string",
@@ -813,7 +813,7 @@
             ]
           },
           "id": {
-            "description": "ID of the Coda workspace.",
+            "description": "ID of the Superhuman Docs workspace.",
             "type": [
               "string",
               "null"
@@ -853,7 +853,7 @@
       },
       "workspaceId": {
         "deprecated": true,
-        "description": "ID of the Coda workspace containing this doc.",
+        "description": "ID of the Superhuman Docs workspace containing this document.",
         "type": [
           "string",
           "null"

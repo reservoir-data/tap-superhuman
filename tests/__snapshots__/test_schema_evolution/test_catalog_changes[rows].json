@@ -164,10 +164,10 @@
           "oneOf": [
             {
               "additionalProperties": false,
-              "description": "A Coda result or entity expressed as a primitive type, or array of primitive types.",
+              "description": "A Superhuman Docs result or entity expressed as a primitive type, or array of primitive types.",
               "oneOf": [
                 {
-                  "description": "A Coda result or entity expressed as a primitive type.",
+                  "description": "A Superhuman Docs result or entity expressed as a primitive type.",
                   "oneOf": [
                     {
                       "example": "$12.34",
@@ -188,7 +188,7 @@
                   "items": {
                     "oneOf": [
                       {
-                        "description": "A Coda result or entity expressed as a primitive type.",
+                        "description": "A Superhuman Docs result or entity expressed as a primitive type.",
                         "oneOf": [
                           {
                             "example": "$12.34",
@@ -207,7 +207,7 @@
                       },
                       {
                         "items": {
-                          "description": "A Coda result or entity expressed as a primitive type.",
+                          "description": "A Superhuman Docs result or entity expressed as a primitive type.",
                           "oneOf": [
                             {
                               "example": "$12.34",
@@ -243,7 +243,7 @@
                   },
                   "oneOf": [
                     {
-                      "description": "A Coda result or entity expressed as a primitive type.",
+                      "description": "A Superhuman Docs result or entity expressed as a primitive type.",
                       "oneOf": [
                         {
                           "example": "$12.34",
@@ -291,7 +291,7 @@
                               ]
                             },
                             "additionalType": {
-                              "description": "An identifier of additional type info specific to Coda that may not be present in a schema.org taxonomy,\n",
+                              "description": "An identifier of additional type info specific to Superhuman Docs that may not be present in a schema.org taxonomy,\n",
                               "type": "string"
                             }
                           },
@@ -374,7 +374,7 @@
                               ]
                             },
                             "additionalType": {
-                              "description": "An identifier of additional type info specific to Coda that may not be present in a schema.org taxonomy,\n",
+                              "description": "An identifier of additional type info specific to Superhuman Docs that may not be present in a schema.org taxonomy,\n",
                               "type": "string"
                             }
                           },
@@ -471,7 +471,7 @@
                               ]
                             },
                             "additionalType": {
-                              "description": "An identifier of additional type info specific to Coda that may not be present in a schema.org taxonomy,\n",
+                              "description": "An identifier of additional type info specific to Superhuman Docs that may not be present in a schema.org taxonomy,\n",
                               "type": "string"
                             }
                           },
@@ -544,7 +544,7 @@
                               ]
                             },
                             "additionalType": {
-                              "description": "An identifier of additional type info specific to Coda that may not be present in a schema.org taxonomy,\n",
+                              "description": "An identifier of additional type info specific to Superhuman Docs that may not be present in a schema.org taxonomy,\n",
                               "type": "string"
                             }
                           },
@@ -572,7 +572,7 @@
                             },
                             "url": {
                               "description": "The url of the hyperlink.",
-                              "example": "https://coda.io",
+                              "example": "https://example.com",
                               "type": "string"
                             }
                           },
@@ -617,7 +617,7 @@
                               ]
                             },
                             "additionalType": {
-                              "description": "An identifier of additional type info specific to Coda that may not be present in a schema.org taxonomy,\n",
+                              "description": "An identifier of additional type info specific to Superhuman Docs that may not be present in a schema.org taxonomy,\n",
                               "type": "string"
                             }
                           },
@@ -684,7 +684,7 @@
                           "type": "object"
                         }
                       ],
-                      "description": "A value representing a Coda row.",
+                      "description": "A value representing a Superhuman Docs row.",
                       "x-schema-name": "RowValue"
                     }
                   ],
@@ -700,7 +700,7 @@
                         },
                         "oneOf": [
                           {
-                            "description": "A Coda result or entity expressed as a primitive type.",
+                            "description": "A Superhuman Docs result or entity expressed as a primitive type.",
                             "oneOf": [
                               {
                                 "example": "$12.34",
@@ -748,7 +748,7 @@
                                     ]
                                   },
                                   "additionalType": {
-                                    "description": "An identifier of additional type info specific to Coda that may not be present in a schema.org taxonomy,\n",
+                                    "description": "An identifier of additional type info specific to Superhuman Docs that may not be present in a schema.org taxonomy,\n",
                                     "type": "string"
                                   }
                                 },
@@ -831,7 +831,7 @@
                                     ]
                                   },
                                   "additionalType": {
-                                    "description": "An identifier of additional type info specific to Coda that may not be present in a schema.org taxonomy,\n",
+                                    "description": "An identifier of additional type info specific to Superhuman Docs that may not be present in a schema.org taxonomy,\n",
                                     "type": "string"
                                   }
                                 },
@@ -928,7 +928,7 @@
                                     ]
                                   },
                                   "additionalType": {
-                                    "description": "An identifier of additional type info specific to Coda that may not be present in a schema.org taxonomy,\n",
+                                    "description": "An identifier of additional type info specific to Superhuman Docs that may not be present in a schema.org taxonomy,\n",
                                     "type": "string"
                                   }
                                 },
@@ -1001,7 +1001,7 @@
                                     ]
                                   },
                                   "additionalType": {
-                                    "description": "An identifier of additional type info specific to Coda that may not be present in a schema.org taxonomy,\n",
+                                    "description": "An identifier of additional type info specific to Superhuman Docs that may not be present in a schema.org taxonomy,\n",
                                     "type": "string"
                                   }
                                 },
@@ -1029,7 +1029,7 @@
                                   },
                                   "url": {
                                     "description": "The url of the hyperlink.",
-                                    "example": "https://coda.io",
+                                    "example": "https://example.com",
                                     "type": "string"
                                   }
                                 },
@@ -1074,7 +1074,7 @@
                                     ]
                                   },
                                   "additionalType": {
-                                    "description": "An identifier of additional type info specific to Coda that may not be present in a schema.org taxonomy,\n",
+                                    "description": "An identifier of additional type info specific to Superhuman Docs that may not be present in a schema.org taxonomy,\n",
                                     "type": "string"
                                   }
                                 },
@@ -1141,7 +1141,7 @@
                                 "type": "object"
                               }
                             ],
-                            "description": "A value representing a Coda row.",
+                            "description": "A value representing a Superhuman Docs row.",
                             "x-schema-name": "RowValue"
                           }
                         ],
@@ -1155,7 +1155,7 @@
                           },
                           "oneOf": [
                             {
-                              "description": "A Coda result or entity expressed as a primitive type.",
+                              "description": "A Superhuman Docs result or entity expressed as a primitive type.",
                               "oneOf": [
                                 {
                                   "example": "$12.34",
@@ -1203,7 +1203,7 @@
                                       ]
                                     },
                                     "additionalType": {
-                                      "description": "An identifier of additional type info specific to Coda that may not be present in a schema.org taxonomy,\n",
+                                      "description": "An identifier of additional type info specific to Superhuman Docs that may not be present in a schema.org taxonomy,\n",
                                       "type": "string"
                                     }
                                   },
@@ -1286,7 +1286,7 @@
                                       ]
                                     },
                                     "additionalType": {
-                                      "description": "An identifier of additional type info specific to Coda that may not be present in a schema.org taxonomy,\n",
+                                      "description": "An identifier of additional type info specific to Superhuman Docs that may not be present in a schema.org taxonomy,\n",
                                       "type": "string"
                                     }
                                   },
@@ -1383,7 +1383,7 @@
                                       ]
                                     },
                                     "additionalType": {
-                                      "description": "An identifier of additional type info specific to Coda that may not be present in a schema.org taxonomy,\n",
+                                      "description": "An identifier of additional type info specific to Superhuman Docs that may not be present in a schema.org taxonomy,\n",
                                       "type": "string"
                                     }
                                   },
@@ -1456,7 +1456,7 @@
                                       ]
                                     },
                                     "additionalType": {
-                                      "description": "An identifier of additional type info specific to Coda that may not be present in a schema.org taxonomy,\n",
+                                      "description": "An identifier of additional type info specific to Superhuman Docs that may not be present in a schema.org taxonomy,\n",
                                       "type": "string"
                                     }
                                   },
@@ -1484,7 +1484,7 @@
                                     },
                                     "url": {
                                       "description": "The url of the hyperlink.",
-                                      "example": "https://coda.io",
+                                      "example": "https://example.com",
                                       "type": "string"
                                     }
                                   },
@@ -1529,7 +1529,7 @@
                                       ]
                                     },
                                     "additionalType": {
-                                      "description": "An identifier of additional type info specific to Coda that may not be present in a schema.org taxonomy,\n",
+                                      "description": "An identifier of additional type info specific to Superhuman Docs that may not be present in a schema.org taxonomy,\n",
                                       "type": "string"
                                     }
                                   },
@@ -1596,7 +1596,7 @@
                                   "type": "object"
                                 }
                               ],
-                              "description": "A value representing a Coda row.",
+                              "description": "A value representing a Superhuman Docs row.",
                               "x-schema-name": "RowValue"
                             }
                           ],

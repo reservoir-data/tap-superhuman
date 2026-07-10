@@ -2,29 +2,29 @@
   "openapi": "3.0.0",
   "info": {
     "version": "1.5.0",
-    "title": "Coda API",
+    "title": "Superhuman Docs API",
     "license": {
-      "name": "Coda Developer Terms",
-      "url": "https://coda.io/trust/developer"
+      "name": "Superhuman Developer Terms",
+      "url": "https://docs.superhuman.com/trust/developer"
     },
-    "description": "# Introduction\n\nThe Coda API is a RESTful API that lets you programmatically interact with Coda docs:\n\n * List and search Coda docs\n * Create new docs and copy existing ones\n * Share and publish docs\n * Discover pages, tables, formulas, and controls\n * Read, insert, upsert, update, and delete rows\n\nAs we update and release newer versions of the API, we reserve the right to remove\nolder APIs and functionality with a 3-month deprecation notice. We will post about such changes as well as announce\nnew features in the [Developers Central](https://community.coda.io/c/developers-central) section of our Community,\nand update the [API updates](https://coda.io/api-updates) doc.\n\n# Getting Started\n\nOur [Getting Started Guide](https://coda.io/@oleg/getting-started-guide-coda-api) helps you learn the\nbasic of working with the API and shows a few ways you can use it. Check it out, and learn how to:\n\n- Read data from Coda tables and write back to them\n- Build a one-way sync from one Coda doc to another\n- Automate reminders\n- Sync your Google Calendar to Coda\n\n# Using the API\n\nCoda's REST API is designed to be straightforward to use. You can use the language and platform of your choice to\nmake requests. To get a feel for the API, you can also use a tool like [Postman](https://www.getpostman.com/) or\n[Insomnia](https://insomnia.rest/).\n\n## API Endpoint\n\nThis API uses a base path of `https://coda.io/apis/v1`.\n\n## Resource IDs and Links\n\nEach resource instance retrieved via the API has the following fields:\n\n  - `id`: The resource's immutable ID, which can be used to refer to it within its context\n  - `type`: The type of resource, useful for identifying it in a heterogenous collection of results\n  - `href`: A fully qualified URI that can be used to refer to and get the latest details on the resource\n\nMost resources can be queried by their name or ID. We recommend sticking with IDs where possible, as names are\nfragile and prone to being changed by your doc's users.\n\n### List Endpoints\n\nEndpoints supporting listing of resources have the following fields:\n\n  - `items`: An array containing the listed resources, limited by the `limit` or `pageToken` query parameters\n  - `nextPageLink`: If more results are available, an API link to the next page of results\n  - `nextPageToken`: If more results are available, a page token that can be passed into the `pageToken` query parameter\n\n**The maximum page size may change at any time, and may be different for different endpoints.** Please do not rely on it\nfor any behavior of your application. If you pass a `limit` parameter that is larger than our maximum allowed limit,\nwe will only return as many results as our maximum limit. You should look for the presence of the `nextPageToken` on the\nresponse to see if there are more results available, rather than relying on a result set that matches your provided limit.\n\nTo fetch a subsequent page of results, pass the `pageToken` parameter. Set this parameter to the value given to you as the `nextPageToken`\nin a page response. If no value is provided, there are no more results available. You only need to pass the `pageToken` to get\nthe next page of results, you don't need to pass any of the parameters from your original request, as they are all\nimplied by the `pageToken`. Any other parameters provided alongside a `pageToken` will be ignored.\n\n### Doc IDs\n\nWhile most object IDs will have to be discovered via the API, you may find yourself frequently wanting to get the\nID of a specific Coda doc.\n\nHere's a handy tool that will extract it for you. (See if you can find the pattern!)\n\n<form>\n  <fieldset style=\"margin: 0px 25px 25px 25px; display: inline;\">\n    <legend>Doc ID Extractor</legend>\n    <input type=\"text\" id=\"de_docUrl\" placeholder=\"Paste in a Coda doc URL\"\n           style=\"width: 250px; padding: 8px; margin-right: 20px;\" />\n    <span>\n      Your doc ID is:&nbsp;&nbsp;&nbsp;\n      <input id=\"de_docId\" readonly=\"true\"\n             style=\"width: 150px; padding: 8px; font-family: monospace; border: 1px dashed gray;\" />\n  </fieldset>\n</form>\n\n## Rate Limiting\n\nThe Coda API sets a reasonable limit on the number of requests that can be made per minute. Once this limit is\nreached, calls to the API will start returning errors with an HTTP status code of 429.\n\nThese are the current rate limits. They are subject to change at any time without notice. For robustness,\nall API scripts should check for HTTP 429 Too Many Requests errors and back off and retry the request.\nLimits apply per-user across all endpoints that share the same limit and across all docs.\n\nReading data (with the exceptions below): {{READ_RATE_LIMIT}}\n<br/>\nWriting data (POST/PUT/PATCH): {{WRITE_RATE_LIMIT}}\n<br/>\nWriting doc content data (POST/PUT/PATCH): {{WRITE_DOC_CONTENT_RATE_LIMIT}}\n<br/>\nListing docs: {{LIST_DOCS_RATE_LIMIT}}\n<br/>\nReading analytics: {{ANALYTICS_RATE_LIMIT}}\n\n## Consistency\n\nWhile edits made in Coda are shared with other collaborators in real-time, it can take a few seconds for them to\nbecome available via the API. You may also notice that changes made via the API, such as updating a row, are not\nimmediate. These endpoints all return an HTTP 202 status code, instead of a standard 200, indicating that the\nedit has been accepted and queued for processing. This generally takes a few seconds, and the edit may fail if\ninvalid. Each such edit will return a `requestId` in the response, and you can pass this `requestId` to the\n[`#getMutationStatus`](#operation/getMutationStatus) endpoint to find out if it has been applied.\n\nSimilarly, when you get doc data from the API (rows, pages, columns, etc), the data you receive comes from\nthe most recent \"snapshot\" of the doc, which might be slightly stale relative to the data you observe in\nyour browser. If you want to ensure that the data you receive is up to date and are ok getting an error if not,\nyou can pass this header in your request: `X-Coda-Doc-Version: latest`. If the API's view of the doc is\nnot up to date, the API will return an HTTP 400 response.\n\n## Volatile Formulas\n\nCoda exposes a number of \"volatile\" formulas, as as `Today()`, `Now()`, and `User()`. When used in a live Coda\ndoc, these formulas affect what's visible in realtime, tailored to the current user.\n\nSuch formulas behave differently with the API. Time-based values may only be current to the last edit made to the\ndoc. User-based values may be blank or invalid.\n\n## Free and Paid Workspaces\n\nWe make the Coda API available to all of our users free of charge, in both free and paid workspaces. However, API\nusage is subject to the role of the user associated with the API token in the workspace applicable to each API\nrequest. What this means is:\n\n- For the [`#createDoc`](#operation/createDoc) endpoint specifically, the owner of the API token must be a Doc\n  Maker (or Admin) in the workspace. If the \"Any member can create docs\" option in enabled in the workspace\n  settings, they can be an Editor and will get auto-promoted to Doc Maker upon using this endpoint. Lastly, if in\n  addition, the API key owner matches the \"Auto-join email domains\" setting, they will be auto-added to the\n  workspace and promoted to Doc Maker upon using this endpoint\n\nThis behavior applies to the API as well as any integrations that may use it, such as Zapier.\n\n## Examples\n\nTo help you get started, this documentation provides code examples in Python, Unix shell, and Google Apps Script.\nThese examples are based on a simple doc that looks something like this:\n\n![](https://cdn.coda.io/external/img/api_example_doc.png)\n\n### Python examples\n\nThese examples use Python 3.6+. If you don't already have the `requests` module, use `pip` or `easy_install` to\nget it.\n\n### Shell examples\n\nThe shell examples are intended to be run in a Unix shell. If you're on Windows, you will need to install\n[WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10).\n\nThese examples use the standard cURL utility to pull from the API, and then process it with `jq` to extract and\nformat example output. If you don't already have it, you can either [install it](https://stedolan.github.io/jq/)\nor run the command without it to see the raw JSON output.\n\n### Google Apps Script examples\n\n![](https://cdn.coda.io/external/img/api_gas.png)\n\n[Google Apps Script](https://script.google.com/) makes it easy to write code in a JavaScript-like syntax and\neasily access many Google products with built-in libraries. You can set up your scripts to run periodically,\nwhich makes it a good environment for writing tools without maintaining your own server.\n\nCoda provides a library for Google Apps Script. To use it, go into `Resources -> Libraries...` and enter the\nfollowing library ID: `15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl`. If you want to see the\nlibrary's source code, it's available\n[here](https://script.google.com/d/15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl/edit).\n\nGoogle provides autocomplete for API functions as well as generated docs. You can access these docs via the\nLibraries dialog by clicking on the library name. Required parameters that would be included in the URL path are\npositional arguments in each of these functions, followed by the request body, if applicable. All remaining\nparameters can be specified in the options object.\n\n## OpenAPI/Swagger Spec\n\nIn an effort to standardize our API and make it accessible, we offer an OpenAPI 3.0 specification:\n\n- [OpenAPI 3.0 spec - YAML](https://coda.io/apis/v1/openapi.yaml)\n- [OpenAPI 3.0 spec - JSON](https://coda.io/apis/v1/openapi.json)\n\n#### Postman collection\n\nTo get started with prototyping the API quickly in Postman, you can use one of links above to import the Coda API\ninto a collection. You'll then need to set the [appropriate header](#section/Authentication) and environment\nvariables.\n\n## Client libraries\n\nWe do not currently support client libraries apart from Google Apps Script. To work with the Coda API, you can\neither use standard network libraries for your language, or use the appropriate Swagger Generator tool to\nauto-generate Coda API client libraries for your language of choice. We do not provide any guarantees that these\nautogenerated libraries are compatible with our API (e.g., some libraries may not work with Bearer\nauthentication).\n\n### OpenAPI 3.0\n\n[Swagger Generator 3](https://generator3.swagger.io/) (that link takes you to the docs for the generator API) can\ngenerate client libraries for [these languages](https://generator3.swagger.io/v2/clients). It's relatively new\nand thus only has support for a limited set of languages at this time.\n\n### Third-party client libraries\n\nSome members of our amazing community have written libraries to work with our API. These aren't officially\nsupported by Coda, but are listed here for convenience. (Please let us know if you've written a library and would\nlike to have it included here.)\n\n- [PHP](https://github.com/danielstieber/CodaPHP) by Daniel Stieber\n- [Node-RED](https://github.com/serene-water/node-red-contrib-coda-io) by Mori Sugimoto\n- [NodeJS](https://www.npmjs.com/package/coda-js) by Parker McMullin\n- [Ruby](https://rubygems.org/gems/coda_docs/) by Carlos Mun\u0303oz at Getro\n- [Python](https://github.com/Blasterai/codaio) by Mikhail Beliansky\n- [Go](https://github.com/artsafin/coda-schema-generator) by Artur Safin\n",
-    "termsOfService": "https://coda.io/trust/tos",
+    "description": "# Introduction\n\nThe Superhuman Docs API is a RESTful API that lets you programmatically interact with data in Superhuman Docs (formerly Coda):\n\n * List and search documents\n * Create new docs and copy existing ones\n * Share and publish docs\n * Discover pages, tables, formulas, and controls\n * Read, insert, upsert, update, and delete rows\n\nIf you plan to integrate Superhuman Docs with an AI tool, you may also want to consider using the\n[Superhuman Docs MCP server](https://docs.superhuman.com/resources/guides/getting_started_with_coda_mcp). It's optimized for LLM usage\npatterns and often exposes more granular methods for accessing and modifying data.\n\n# Getting Started\n\nOur [Getting Started Guide](https://docs.superhuman.com/@oleg/getting-started-guide-coda-api) helps you learn the\nbasic of working with the API and shows a few ways you can use it. Check it out, and learn how to:\n\n- Read data from tables and write back to them\n- Build a one-way sync from one document to another\n- Automate reminders\n- Sync your Google Calendar to Superhuman Docs\n\n# Changes to the API\n\nAs we update and release newer versions of the API, we reserve the right to remove\nolder APIs and functionality with a 3-month deprecation notice. We will post about such changes as well as announce\nnew features in the [Developers Central](https://connect.superhuman.com/c/developers-central/14) section of our Community,\nand update the [API updates](https://docs.superhuman.com/api-updates) doc.\n\n# Using the API\n\nThe Superhuman Docs REST API is designed to be straightforward to use. You can use the language and platform of your choice to\nmake requests. To get a feel for the API, you can also use a tool like [Postman](https://www.getpostman.com/) or\n[Insomnia](https://insomnia.rest/).\n\n## API Endpoint\n\nThis API uses a base path of `https://coda.io/apis/v1`.\n\n## Resource IDs and Links\n\nEach resource instance retrieved via the API has the following fields:\n\n  - `id`: The resource's immutable ID, which can be used to refer to it within its context\n  - `type`: The type of resource, useful for identifying it in a heterogenous collection of results\n  - `href`: A fully qualified URI that can be used to refer to and get the latest details on the resource\n\nMost resources can be queried by their name or ID. We recommend sticking with IDs where possible, as names are\nfragile and prone to being changed by your doc's users.\n\n### List Endpoints\n\nEndpoints supporting listing of resources have the following fields:\n\n  - `items`: An array containing the listed resources, limited by the `limit` or `pageToken` query parameters\n  - `nextPageLink`: If more results are available, an API link to the next page of results\n  - `nextPageToken`: If more results are available, a page token that can be passed into the `pageToken` query parameter\n\n**The maximum page size may change at any time, and may be different for different endpoints.** Please do not rely on it\nfor any behavior of your application. If you pass a `limit` parameter that is larger than our maximum allowed limit,\nwe will only return as many results as our maximum limit. You should look for the presence of the `nextPageToken` on the\nresponse to see if there are more results available, rather than relying on a result set that matches your provided limit.\n\nTo fetch a subsequent page of results, pass the `pageToken` parameter. Set this parameter to the value given to you as the `nextPageToken`\nin a page response. If no value is provided, there are no more results available. You only need to pass the `pageToken` to get\nthe next page of results, you don't need to pass any of the parameters from your original request, as they are all\nimplied by the `pageToken`. Any other parameters provided alongside a `pageToken` will be ignored.\n\n### Doc IDs\n\nWhile most object IDs will have to be discovered via the API, you may find yourself frequently wanting to get the\nID of a specific document.\n\nHere's a handy tool that will extract it for you. (See if you can find the pattern!)\n\n<form>\n  <fieldset style=\"margin: 0px 25px 25px 25px; display: inline;\">\n    <legend>Doc ID Extractor</legend>\n    <input type=\"text\" id=\"de_docUrl\" placeholder=\"Paste in a document URL\"\n           style=\"width: 250px; padding: 8px; margin-right: 20px;\" />\n    <span>\n      Your doc ID is:&nbsp;&nbsp;&nbsp;\n      <input id=\"de_docId\" readonly=\"true\"\n             style=\"width: 150px; padding: 8px; font-family: monospace; border: 1px dashed gray;\" />\n  </fieldset>\n</form>\n\n## Rate Limiting\n\nThe Superhuman Docs API sets a reasonable limit on the number of requests that can be made per minute. Once this limit is\nreached, calls to the API will start returning errors with an HTTP status code of 429.\n\nThese are the current rate limits. They are subject to change at any time without notice. For robustness,\nall API scripts should check for HTTP 429 Too Many Requests errors and back off and retry the request.\nLimits apply per-user across all endpoints that share the same limit and across all docs.\n\nReading data (with the exceptions below): {{READ_RATE_LIMIT}}\n<br/>\nWriting data (POST/PUT/PATCH): {{WRITE_RATE_LIMIT}}\n<br/>\nWriting doc content data (POST/PUT/PATCH): {{WRITE_DOC_CONTENT_RATE_LIMIT}}\n<br/>\nListing docs: {{LIST_DOCS_RATE_LIMIT}}\n<br/>\nReading analytics: {{ANALYTICS_RATE_LIMIT}}\n\n## Consistency\n\nWhile edits made in Superhuman Docs are shared with other collaborators in real-time, it can take a few seconds for them to\nbecome available via the API. You may also notice that changes made via the API, such as updating a row, are not\nimmediate. These endpoints all return an HTTP 202 status code, instead of a standard 200, indicating that the\nedit has been accepted and queued for processing. This generally takes a few seconds, and the edit may fail if\ninvalid. Each such edit will return a `requestId` in the response, and you can pass this `requestId` to the\n[`#getMutationStatus`](#operation/getMutationStatus) endpoint to find out if it has been applied.\n\nSimilarly, when you get doc data from the API (rows, pages, columns, etc), the data you receive comes from\nthe most recent \"snapshot\" of the doc, which might be slightly stale relative to the data you observe in\nyour browser. If you want to ensure that the data you receive is up to date and are ok getting an error if not,\nyou can pass this header in your request: `X-Coda-Doc-Version: latest`. If the API's view of the doc is\nnot up to date, the API will return an HTTP 400 response.\n\n## Volatile Formulas\n\nSuperhuman Docs exposes a number of \"volatile\" formulas, as as `Today()`, `Now()`, and `User()`. When used in a live\ndocument, these formulas affect what's visible in realtime, tailored to the current user.\n\nSuch formulas behave differently with the API. Time-based values may only be current to the last edit made to the\ndoc. User-based values may be blank or invalid.\n\n## Free and Paid Workspaces\n\nWe make the Superhuman Docs API available to all of our users free of charge, in both free and paid workspaces. However, API\nusage is subject to the role of the user associated with the API token in the workspace applicable to each API\nrequest. What this means is:\n\n- For the [`#createDoc`](#operation/createDoc) endpoint specifically, the owner of the API token must be a Doc\n  Maker (or Admin) in the workspace. If the \"Any member can create docs\" option in enabled in the workspace\n  settings, they can be an Editor and will get auto-promoted to Doc Maker upon using this endpoint. Lastly, if in\n  addition, the API key owner matches the \"Auto-join email domains\" setting, they will be auto-added to the\n  workspace and promoted to Doc Maker upon using this endpoint\n\nThis behavior applies to the API as well as any integrations that may use it, such as Zapier.\n\n## Examples\n\nTo help you get started, this documentation provides code examples in Python, Unix shell, and Google Apps Script.\n\n### Python examples\n\nThese examples use Python 3.6+. If you don't already have the `requests` module, use `pip` or `easy_install` to\nget it.\n\n### Shell examples\n\nThe shell examples are intended to be run in a Unix shell. If you're on Windows, you will need to install\n[WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10).\n\nThese examples use the standard cURL utility to pull from the API, and then process it with `jq` to extract and\nformat example output. If you don't already have it, you can either [install it](https://stedolan.github.io/jq/)\nor run the command without it to see the raw JSON output.\n\n### Google Apps Script examples\n\n[Google Apps Script](https://script.google.com/) makes it easy to write code in a JavaScript-like syntax and\neasily access many Google products with built-in libraries. You can set up your scripts to run periodically,\nwhich makes it a good environment for writing tools without maintaining your own server.\n\nSuperhuman Docs provides a library for Google Apps Script. To use it, go into `Resources -> Libraries...` and enter the\nfollowing library ID: `15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl`. If you want to see the\nlibrary's source code, it's available\n[here](https://script.google.com/d/15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl/edit).\n\nGoogle provides autocomplete for API functions as well as generated docs. You can access these docs via the\nLibraries dialog by clicking on the library name. Required parameters that would be included in the URL path are\npositional arguments in each of these functions, followed by the request body, if applicable. All remaining\nparameters can be specified in the options object.\n\n## OpenAPI/Swagger Spec\n\nIn an effort to standardize our API and make it accessible, we offer an OpenAPI 3.0 specification:\n\n- [OpenAPI 3.0 spec - YAML](https://coda.io/apis/v1/openapi.yaml)\n- [OpenAPI 3.0 spec - JSON](https://coda.io/apis/v1/openapi.json)\n\n#### Postman collection\n\nTo get started with prototyping the API quickly in Postman, you can use one of links above to import the Superhuman Docs API\ninto a collection. You'll then need to set the [appropriate header](#section/Authentication) and environment\nvariables.\n\n## Client libraries\n\nWe do not currently support client libraries apart from Google Apps Script. To work with the Superhuman Docs API, you can\neither use standard network libraries for your language, or use the appropriate Swagger Generator tool to\nauto-generate Superhuman Docs API client libraries for your language of choice. We do not provide any guarantees that these\nautogenerated libraries are compatible with our API (e.g., some libraries may not work with Bearer\nauthentication).\n\n### OpenAPI 3.0\n\n[Swagger Generator 3](https://generator3.swagger.io/) (that link takes you to the docs for the generator API) can\ngenerate client libraries for [these languages](https://generator3.swagger.io/v2/clients). It's relatively new\nand thus only has support for a limited set of languages at this time.\n\n### Third-party client libraries\n\nSome members of our amazing community have written libraries to work with our API. These aren't officially\nsupported by Superhuman, but are listed here for convenience. (Please let us know if you've written a library and would\nlike to have it included here.)\n\n- [PHP](https://github.com/danielstieber/CodaPHP) by Daniel Stieber\n- [Node-RED](https://github.com/serene-water/node-red-contrib-coda-io) by Mori Sugimoto\n- [NodeJS](https://www.npmjs.com/package/coda-js) by Parker McMullin\n- [Ruby](https://rubygems.org/gems/coda_docs/) by Carlos Mun\u0303oz at Getro\n- [Python](https://github.com/Blasterai/codaio) by Mikhail Beliansky\n- [Go](https://github.com/artsafin/coda-schema-generator) by Artur Safin\n",
+    "termsOfService": "https://superhuman.com/legal/terms",
     "contact": {
-      "name": "API Support",
-      "url": "https://coda.io",
-      "email": "help+api@coda.io"
+      "name": "Developer Support",
+      "url": "https://superhuman.com/developers",
+      "email": "care@superhuman.com"
     },
     "x-logo": {
       "url": "https://cdn.coda.io/external/img/apilogo.png",
       "backgroundColor": "transparent",
-      "altText": "Coda API",
+      "altText": "Superhuman Docs API",
       "href": "#"
     }
   },
   "servers": [
     {
       "url": "https://coda.io/apis/v1",
-      "description": "Coda API (v1)"
+      "description": "Superhuman Docs API (v1)"
     }
   ],
   "tags": [
@@ -42,7 +42,7 @@
     },
     {
       "name": "Columns",
-      "description": "While columns in Coda have user-friendly names, they also have immutable IDs that are used when reading and writing rows. These endpoints let you query the columns in a table and get basic information about them.\n"
+      "description": "While columns in Superhuman Docs have user-friendly names, they also have immutable IDs that are used when reading and writing rows. These endpoints let you query the columns in a table and get basic information about them.\n"
     },
     {
       "name": "Controls",
@@ -50,7 +50,7 @@
     },
     {
       "name": "Docs",
-      "description": "Coda docs are foundational, top-level collaborative projects that contain pages. The API lets you list and search your docs to obtain basic metadata like titles and ownership information.\n"
+      "description": "Documents are foundational, top-level collaborative projects that contain pages. The API lets you list and search your docs to obtain basic metadata like titles and ownership information.\n"
     },
     {
       "name": "Folders",
@@ -62,15 +62,15 @@
     },
     {
       "name": "Miscellaneous",
-      "description": "These endpoints wouldn't fit anywhere else, but you may find them useful when working with Coda.\n"
+      "description": "These endpoints wouldn't fit anywhere else, but you may find them useful when working with Superhuman Docs.\n"
     },
     {
       "name": "Packs",
-      "description": "This API allows you to manage Packs that you have developed as well as list publicly available Coda packs.\n"
+      "description": "This API allows you to manage Packs that you have developed as well as list publicly available Superhuman Packs.\n"
     },
     {
       "name": "Pages",
-      "description": "Pages in Coda offer canvases containing rich text, tables, controls, and other objects. At this time, this API lets you list and access pages in a doc.\n"
+      "description": "Pages in Superhuman Docs offer canvases containing rich text, tables, controls, and other objects. At this time, this API lets you list and access pages in a doc.\n"
     },
     {
       "name": "Permissions",
@@ -78,15 +78,15 @@
     },
     {
       "name": "Publishing",
-      "description": "Coda docs can be published publicly and associated with categories to help the world discover them. This API lets you manage the publishing settings of your docs.\n"
+      "description": "Documents can be published publicly and associated with categories to help the world discover them. This API lets you manage the publishing settings of your docs.\n"
     },
     {
       "name": "Rows",
-      "description": "You'll likely use this part of the API the most. These endpoints let you retrieve row data from tables in Coda as well as create, upsert, update, and delete them. Most of these endpoints work for both base tables and views, but for inserting/upsering rows, you must use a base table.\n"
+      "description": "You'll likely use this part of the API the most. These endpoints let you retrieve row data from tables in Superhuman Docs as well as create, upsert, update, and delete them. Most of these endpoints work for both base tables and views, but for inserting/upsering rows, you must use a base table.\n"
     },
     {
       "name": "Tables and Views",
-      "description": "If you're here, you know the power of tables in Coda. This API lets you list the tables and views in a Coda doc and obtain basic schema information.\n"
+      "description": "If you're here, you know the power of tables in Superhuman Docs. This API lets you list the tables and views in a document and obtain basic schema information.\n"
     },
     {
       "name": "Workspaces",
@@ -183,7 +183,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nvar categories = CodaAPI.listCategories();\nLogger.log('Category count: ' + categories.categories.length);\n// => Category count: 10\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nvar categories = SuperhumanDocs.listCategories();\nLogger.log('Category count: ' + categories.categories.length);\n// => Category count: 10\n"
           }
         ]
       }
@@ -191,7 +191,7 @@
     "/docs": {
       "get": {
         "summary": "List available docs",
-        "description": "Returns a list of Coda docs accessible by the user, and which they have opened at least once. These are returned in the same order as on the docs page: reverse chronological by the latest event relevant to the user (last viewed, edited, or shared).\n",
+        "description": "Returns a list of documents accessible by the user, and which they have opened at least once. These are returned in the same order as on the docs page: reverse chronological by the latest event relevant to the user (last viewed, edited, or shared).\n",
         "operationId": "listDocs",
         "tags": [
           "Docs"
@@ -265,7 +265,7 @@
         ],
         "responses": {
           "200": {
-            "description": "List of Coda docs matching the query.",
+            "description": "List of documents matching the query.",
             "content": {
               "application/json": {
                 "schema": {
@@ -301,13 +301,13 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nvar docs = CodaAPI.listDocs().items;\nLogger.log('First doc is ' + docs[0].name);\n// => First doc is: New Document\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nvar docs = SuperhumanDocs.listDocs().items;\nLogger.log('First doc is ' + docs[0].name);\n// => First doc is: New Document\n"
           }
         ]
       },
       "post": {
         "summary": "Create doc",
-        "description": "Creates a new Coda doc, optionally copying an existing doc. Note that creating a doc requires you to be a Doc Maker in the applicable workspace (or be auto-promoted to one).\n",
+        "description": "Creates a new document, optionally copying an existing document. Note that creating a document requires you to be a Doc Maker in the applicable workspace (or be auto-promoted to one).\n",
         "operationId": "createDoc",
         "tags": [
           "Docs"
@@ -361,7 +361,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nvar res = CodaAPI.createDoc({title: 'Project Tracker'});\nLogger.log('New doc created with name ' + res.name);\n// => First doc in the results is: New Document\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nvar res = SuperhumanDocs.createDoc({title: 'Project Tracker'});\nLogger.log('New doc created with name ' + res.name);\n// => First doc in the results is: New Document\n"
           }
         ]
       }
@@ -381,7 +381,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Basic Coda doc metadata.",
+            "description": "Basic document metadata.",
             "content": {
               "application/json": {
                 "schema": {
@@ -417,7 +417,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nvar docInfo = CodaAPI.getDoc('<doc ID>');\nLogger.log('The name of the doc is ' + docInfo.name);\n// => The name of the doc is New Document\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nvar docInfo = SuperhumanDocs.getDoc('<doc ID>');\nLogger.log('The name of the doc is ' + docInfo.name);\n// => The name of the doc is New Document\n"
           }
         ]
       },
@@ -471,7 +471,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nvar docInfo = CodaAPI.deleteDoc('<doc ID>');\n// => The given doc is now deleted\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nvar docInfo = SuperhumanDocs.deleteDoc('<doc ID>');\n// => The given doc is now deleted\n"
           }
         ]
       },
@@ -500,7 +500,7 @@
         },
         "responses": {
           "200": {
-            "description": "Basic Coda doc metadata.",
+            "description": "Basic document metadata.",
             "content": {
               "application/json": {
                 "schema": {
@@ -539,7 +539,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nCodaAPI.updateDoc(<doc ID>, {title: \"New Doc Title\"});\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nSuperhumanDocs.updateDoc(<doc ID>, {title: \"New Doc Title\"});\n"
           }
         ]
       }
@@ -547,7 +547,7 @@
     "/docs/{docId}/acl/metadata": {
       "get": {
         "summary": "Get sharing metadata",
-        "description": "Returns metadata associated with sharing for this Coda doc.",
+        "description": "Returns metadata associated with sharing for this document.",
         "operationId": "getSharingMetadata",
         "tags": [
           "Permissions"
@@ -595,7 +595,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nvar docSharingMetadata = CodaAPI.getSharingMetadata('<doc ID>');\nLogger.log('Can I share this doc with others? ' + docSharingMetadata.canShare);\n// => Can I share this doc with others? true\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nvar docSharingMetadata = SuperhumanDocs.getSharingMetadata('<doc ID>');\nLogger.log('Can I share this doc with others? ' + docSharingMetadata.canShare);\n// => Can I share this doc with others? true\n"
           }
         ]
       }
@@ -603,7 +603,7 @@
     "/docs/{docId}/acl/permissions": {
       "get": {
         "summary": "List permissions",
-        "description": "Returns a list of permissions for this Coda doc.",
+        "description": "Returns a list of permissions for this document.",
         "operationId": "getPermissions",
         "tags": [
           "Permissions"
@@ -657,7 +657,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nvar docPermissions = CodaAPI.getPermissions('<doc ID>');\nLogger.log('First user with access is ' + docPermissions[0].principal.email);\n// => First user with access is foo@bar.com\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nvar docPermissions = SuperhumanDocs.getPermissions('<doc ID>');\nLogger.log('First user with access is ' + docPermissions[0].principal.email);\n// => First user with access is foo@bar.com\n"
           }
         ]
       },
@@ -725,7 +725,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nvar docPermissions = CodaAPI.addPermission(\n  '<doc ID>',\n  {access: 'write', principal: {type: 'email', email: 'foo@bar.com'}}\n);\n// => Grant 'foo@bar.com' write access to the doc and send a share notification email\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nvar docPermissions = SuperhumanDocs.addPermission(\n  '<doc ID>',\n  {access: 'write', principal: {type: 'email', email: 'foo@bar.com'}}\n);\n// => Grant 'foo@bar.com' write access to the doc and send a share notification email\n"
           }
         ]
       }
@@ -787,7 +787,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nvar docPermissions = CodaAPI.deletePermission('<doc ID>', '<permission ID>');\n// => Revoke access to the doc\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nvar docPermissions = SuperhumanDocs.deletePermission('<doc ID>', '<permission ID>');\n// => Revoke access to the doc\n"
           }
         ]
       }
@@ -849,7 +849,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nvar principals = CodaAPI.searchPrincipals('<doc ID>');\nLogger.log('First user with access is ' + docPermissions[0].principal.email);\n// => First user with access is foo@bar.com\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nvar principals = SuperhumanDocs.searchPrincipals('<doc ID>');\nLogger.log('First user with access is ' + docPermissions[0].principal.email);\n// => First user with access is foo@bar.com\n"
           }
         ]
       }
@@ -857,7 +857,7 @@
     "/docs/{docId}/acl/settings": {
       "get": {
         "summary": "Get ACL settings",
-        "description": "Returns settings associated with ACLs for this Coda doc.",
+        "description": "Returns settings associated with ACLs for this document.",
         "operationId": "getAclSettings",
         "tags": [
           "Permissions"
@@ -905,13 +905,13 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nvar settings = CodaAPI.getAclSettings('<doc ID>');\nLogger.log('Can editors change sharing permissions? ' + settings.allowEditorsToChangePermissions);\n// => Can editors change sharing permissions? true\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nvar settings = SuperhumanDocs.getAclSettings('<doc ID>');\nLogger.log('Can editors change sharing permissions? ' + settings.allowEditorsToChangePermissions);\n// => Can editors change sharing permissions? true\n"
           }
         ]
       },
       "patch": {
         "summary": "Update ACL settings",
-        "description": "Update settings associated with ACLs for this Coda doc.",
+        "description": "Update settings associated with ACLs for this document.",
         "operationId": "updateAclSettings",
         "tags": [
           "Permissions"
@@ -1023,7 +1023,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nvar res = CodaAPI.publishDoc(<doc ID>, {discoverable: true});\nLogger.log('Discoverable will be true');\n// => Discoverable will be true\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nvar res = SuperhumanDocs.publishDoc(<doc ID>, {discoverable: true});\nLogger.log('Discoverable will be true');\n// => Discoverable will be true\n"
           }
         ]
       },
@@ -1077,7 +1077,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nvar docInfo = CodaAPI.unpublishDoc('<doc ID>');\n// => The given doc is now unpublished\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nvar docInfo = SuperhumanDocs.unpublishDoc('<doc ID>');\n// => The given doc is now unpublished\n"
           }
         ]
       }
@@ -1085,7 +1085,7 @@
     "/docs/{docId}/pages": {
       "get": {
         "summary": "List pages",
-        "description": "Returns a list of pages in a Coda doc.",
+        "description": "Returns a list of pages in a document.",
         "operationId": "listPages",
         "tags": [
           "Pages"
@@ -1139,7 +1139,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nvar pages = CodaAPI.listPages('<doc ID>').items;\nLogger.log('The name of the first page is ' + pages[0].name);\n// => The name of the first page is Page 1\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nvar pages = SuperhumanDocs.listPages('<doc ID>').items;\nLogger.log('The name of the first page is ' + pages[0].name);\n// => The name of the first page is Page 1\n"
           }
         ]
       },
@@ -1207,7 +1207,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nvar res = CodaAPI.createPage(<doc ID>, {name: \"New Page Name\"});\nLogger.log('Created page ' + res.id);\n// => Created page <page ID>\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nvar res = SuperhumanDocs.createPage(<doc ID>, {name: \"New Page Name\"});\nLogger.log('Created page ' + res.id);\n// => Created page <page ID>\n"
           }
         ]
       }
@@ -1269,7 +1269,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nvar page = CodaAPI.getPage('<doc ID>', '<page ID>');\nLogger.log('The name of this page is ' + page.name);\n// => The name of this page is Page 1\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nvar page = SuperhumanDocs.getPage('<doc ID>', '<page ID>');\nLogger.log('The name of this page is ' + page.name);\n// => The name of this page is Page 1\n"
           }
         ]
       },
@@ -1340,7 +1340,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nvar res = CodaAPI.updatePage(<doc ID>, <page ID>, {name: \"New Page Name\"});\nLogger.log('Updated page ' + res.id);\n// => Updated page <page ID>\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nvar res = SuperhumanDocs.updatePage(<doc ID>, <page ID>, {name: \"New Page Name\"});\nLogger.log('Updated page ' + res.id);\n// => Updated page <page ID>\n"
           }
         ]
       },
@@ -1400,7 +1400,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nCodaAPI.deleteRows('<doc ID>', '<page ID>');\nLogger.log('Deleted 2 rows');\n// => Deleted page\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nSuperhumanDocs.deleteRows('<doc ID>', '<page ID>');\nLogger.log('Deleted 2 rows');\n// => Deleted page\n"
           }
         ]
       }
@@ -1471,7 +1471,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nvar content = CodaAPI.listPageContent('<doc ID>', '<page ID>');\nLogger.log('The page has ' + content.items.length + ' content elements');\n// => The page has 10 content elements\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nvar content = SuperhumanDocs.listPageContent('<doc ID>', '<page ID>');\nLogger.log('The page has ' + content.items.length + ' content elements');\n// => The page has 10 content elements\n"
           }
         ]
       },
@@ -1542,7 +1542,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\n\n// Delete all content\nvar res = CodaAPI.deletePageContent('<doc ID>', '<page ID>');\nLogger.log('Deleted all content from page ' + res.id);\n// => Deleted all content from page <page ID>\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\n\n// Delete all content\nvar res = SuperhumanDocs.deletePageContent('<doc ID>', '<page ID>');\nLogger.log('Deleted all content from page ' + res.id);\n// => Deleted all content from page <page ID>\n"
           }
         ]
       }
@@ -1618,7 +1618,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nvar page = CodaAPI.beginPageContentExport('<doc ID>', '<page ID>', {outputFormat: 'html'});\nLogger.log('Export status available at ' + page.href);\n// => Export status available at <status URL>\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nvar page = SuperhumanDocs.beginPageContentExport('<doc ID>', '<page ID>', {outputFormat: 'html'});\nLogger.log('Export status available at ' + page.href);\n// => Export status available at <status URL>\n"
           }
         ]
       }
@@ -1683,7 +1683,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nvar response = CodaAPI.getPageContentExportStatus('<doc ID>', '<page ID>', '<request ID>');\nLogger.log('Export status: ' + response.status);\n// => Export status: completed\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nvar response = SuperhumanDocs.getPageContentExportStatus('<doc ID>', '<page ID>', '<request ID>');\nLogger.log('Export status: ' + response.status);\n// => Export status: completed\n"
           }
         ]
       }
@@ -1691,7 +1691,7 @@
     "/docs/{docId}/tables": {
       "get": {
         "summary": "List tables",
-        "description": "Returns a list of tables in a Coda doc.",
+        "description": "Returns a list of tables in a document.",
         "operationId": "listTables",
         "tags": [
           "Tables"
@@ -1751,7 +1751,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nvar tables = CodaAPI.listTables('<doc ID>').items;\nLogger.log('The name of the first table is ' + tables[0].name);\n// => The name of the first table is To-do List\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nvar tables = SuperhumanDocs.listTables('<doc ID>').items;\nLogger.log('The name of the first table is ' + tables[0].name);\n// => The name of the first table is To-do List\n"
           }
         ]
       }
@@ -1818,7 +1818,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nvar table = CodaAPI.getTable('<doc ID>', '<table ID>');\nLogger.log('Table ' + table.name + ' has ' + table.rowCount + ' rows');\n// => Table To-do List has 2 rows\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nvar table = SuperhumanDocs.getTable('<doc ID>', '<table ID>');\nLogger.log('Table ' + table.name + ' has ' + table.rowCount + ' rows');\n// => Table To-do List has 2 rows\n"
           }
         ]
       }
@@ -1901,7 +1901,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nvar columns = CodaAPI.listColumns('<doc ID>', '<table ID>').items;\nvar names = columns.map(function(column) { return column.name; });\nLogger.log('This table\\'s columns: ' + names.join(', '));\n// => This table's columns: Task, Duration (hr), Duration (min)\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nvar columns = SuperhumanDocs.listColumns('<doc ID>', '<table ID>').items;\nvar names = columns.map(function(column) { return column.name; });\nLogger.log('This table\\'s columns: ' + names.join(', '));\n// => This table's columns: Task, Duration (hr), Duration (min)\n"
           }
         ]
       }
@@ -1909,7 +1909,7 @@
     "/docs/{docId}/tables/{tableIdOrName}/rows": {
       "get": {
         "summary": "List table rows",
-        "description": "Returns a list of rows in a table.\n### Value results\nThe `valueFormat` parameter dictates in what format the API should return values for individual cells.\n* `simple` (default): Returns cell values as the following JSON values: `string`, `number`, or `boolean`. Array values (like multiselects) are returned as comma-delimited strings.\n* `simpleWithArrays`: Singleton values are returned as `simple`. Array values are returned as JSON arrays and the values within are `simple` values (including nested arrays).\n* `rich`: If applicable, returns many values with further encoding, allowing API users to have lossless access to data in Coda.\n  * For `text` values, returns data in Markdown syntax. If the text field is simple text (e.g. has no formatting),\n  the field will be fully escaped with triple-ticks. E.g\n  `\n  ```This is plain text```\n  `\n  * For `currency`, `lookup`, `image`, `person` and `hyperlink` values, the value will be encoded in [JSON-LD](https://json-ld.org/) format.\n\n```\n  // Currency\n  {\n    \"@context\": \"http://schema.org\",\n    \"@type\": \"MonetaryAmount\",\n    \"currency\": \"USD\",\n    \"amount\": 42.42\n  }\n\n  // Lookup\n  {\n    \"@context\": \"http://schema.org\",\n    \"@type\": \"StructuredValue\",\n    \"additionalType\": \"row\",\n    \"name\": \"Row Name\",\n    \"rowId\": \"i-123456789\",\n    \"tableId\": \"grid-123456789\",\n    \"tableUrl\": \"https://coda.io/d/_d123456789/grid-123456789\",\n    \"url\": \"https://coda.io/d/_d123456789/grid-123456789#_r42\",\n  }\n\n  // Hyperlink\n  {\n    \"@context\": \"http://schema.org\",\n    \"@type\": \"WebPage\",\n    \"name\": \"Coda\",\n    \"url\": \"https://coda.io\"\n  }\n\n  // Image\n  {\n    \"@context\": \"http://schema.org\",\n    \"@type\": \"ImageObject\",\n    \"name\": \"Coda logo\",\n    \"url\": \"https://coda.io/logo.jpg\"\n  }\n\n  // People\n  {\n    \"@context\": \"http://schema.org\",\n    \"@type\": \"Person\",\n    \"name\": \"Art Vandalay\",\n    \"email\": \"art@vandalayindustries.com\"\n  }\n```\n",
+        "description": "Returns a list of rows in a table.\n### Value results\nThe `valueFormat` parameter dictates in what format the API should return values for individual cells.\n* `simple` (default): Returns cell values as the following JSON values: `string`, `number`, or `boolean`. Array values (like multiselects) are returned as comma-delimited strings.\n* `simpleWithArrays`: Singleton values are returned as `simple`. Array values are returned as JSON arrays and the values within are `simple` values (including nested arrays).\n* `rich`: If applicable, returns many values with further encoding, allowing API users to have lossless access to data in Superhuman Docs.\n  * For `text` values, returns data in Markdown syntax. If the text field is simple text (e.g. has no formatting),\n  the field will be fully escaped with triple-ticks. E.g\n  `\n  ```This is plain text```\n  `\n  * For `currency`, `lookup`, `image`, `person` and `hyperlink` values, the value will be encoded in [JSON-LD](https://json-ld.org/) format.\n\n```\n  // Currency\n  {\n    \"@context\": \"http://schema.org\",\n    \"@type\": \"MonetaryAmount\",\n    \"currency\": \"USD\",\n    \"amount\": 42.42\n  }\n\n  // Lookup\n  {\n    \"@context\": \"http://schema.org\",\n    \"@type\": \"StructuredValue\",\n    \"additionalType\": \"row\",\n    \"name\": \"Row Name\",\n    \"rowId\": \"i-123456789\",\n    \"tableId\": \"grid-123456789\",\n    \"tableUrl\": \"https://docs.superhuman.com/d/_d123456789/grid-123456789\",\n    \"url\": \"https://docs.superhuman.com/d/_d123456789/grid-123456789#_r42\",\n  }\n\n  // Hyperlink\n  {\n    \"@context\": \"http://schema.org\",\n    \"@type\": \"WebPage\",\n    \"name\": \"Vandalay Industries\",\n    \"url\": \"https://vandalay.example.com\"\n  }\n\n  // Image\n  {\n    \"@context\": \"http://schema.org\",\n    \"@type\": \"ImageObject\",\n    \"name\": \"Vandalay Industries logo\",\n    \"url\": \"https://vandalay.example.com/logo.jpg\"\n  }\n\n  // People\n  {\n    \"@context\": \"http://schema.org\",\n    \"@type\": \"Person\",\n    \"name\": \"Art Vandalay\",\n    \"email\": \"art@vandalay.example.com\"\n  }\n```\n",
         "operationId": "listRows",
         "tags": [
           "Rows"
@@ -2009,7 +2009,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nvar query = '<column ID>:\"Work out\"';\nvar rows = CodaAPI.listRows('<doc ID>', '<table ID>', {query: query}).items;\nLogger.log('Matching rows: ' + rows.length);\n// => Matching rows: 1\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nvar query = '<column ID>:\"Work out\"';\nvar rows = SuperhumanDocs.listRows('<doc ID>', '<table ID>', {query: query}).items;\nLogger.log('Matching rows: ' + rows.length);\n// => Matching rows: 1\n"
           }
         ]
       },
@@ -2089,7 +2089,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nvar body = {\n  'rows': [\n    {\n      'cells': [\n        {'column': '<column ID>', 'value': 'Feed Baker'},\n      ],\n    },\n  ],\n};\nCodaAPI.upsertRows('<doc ID>', '<table ID>', body);\nLogger.log('Inserted 1 row');\n// => Inserted 1 row\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nvar body = {\n  'rows': [\n    {\n      'cells': [\n        {'column': '<column ID>', 'value': 'Feed Baker'},\n      ],\n    },\n  ],\n};\nSuperhumanDocs.upsertRows('<doc ID>', '<table ID>', body);\nLogger.log('Inserted 1 row');\n// => Inserted 1 row\n"
           }
         ]
       },
@@ -2160,7 +2160,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nvar body = {\n  'rowIds': ['i-aBcDeFgH', 'i-AbCdEfGh'],\n};\nCodaAPI.deleteRows('<doc ID>', '<table ID>', body);\nLogger.log('Deleted 2 rows');\n// => Deleted 2 rows\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nvar body = {\n  'rowIds': ['i-aBcDeFgH', 'i-AbCdEfGh'],\n};\nSuperhumanDocs.deleteRows('<doc ID>', '<table ID>', body);\nLogger.log('Deleted 2 rows');\n// => Deleted 2 rows\n"
           }
         ]
       }
@@ -2233,7 +2233,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nvar row = CodaAPI.getRow('<doc ID>', '<table ID>', '<row ID>');\nvar values = Object.keys(row.values).map(function(colId) { return row.values[colId]; });\nLogger.log('Row values are: ' + values.join(', '));\n// => Row values are: Get groceries, 1, 60\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nvar row = SuperhumanDocs.getRow('<doc ID>', '<table ID>', '<row ID>');\nvar values = Object.keys(row.values).map(function(colId) { return row.values[colId]; });\nLogger.log('Row values are: ' + values.join(', '));\n// => Row values are: Get groceries, 1, 60\n"
           }
         ]
       },
@@ -2316,7 +2316,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nvar body = {\n  row: {\n    cells: [\n      {'column': '<column ID>', 'value': 'Get groceries from Whole Foods'},\n    ],\n  },\n};\nvar row = CodaAPI.updateRow('<doc ID>', '<table ID>', '<row ID>', body);\nLogger.log('Updated row ' + row.id);\n// => Updated row <row ID>\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nvar body = {\n  row: {\n    cells: [\n      {'column': '<column ID>', 'value': 'Get groceries from Whole Foods'},\n    ],\n  },\n};\nvar row = SuperhumanDocs.updateRow('<doc ID>', '<table ID>', '<row ID>', body);\nLogger.log('Updated row ' + row.id);\n// => Updated row <row ID>\n"
           }
         ]
       },
@@ -2376,7 +2376,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nvar row = CodaAPI.deleteRow('<doc ID>', '<table ID>', '<row ID>');\nLogger.log('Deleted row ' + row.id);\n// => Deleted row <row ID>\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nvar row = SuperhumanDocs.deleteRow('<doc ID>', '<table ID>', '<row ID>');\nLogger.log('Deleted row ' + row.id);\n// => Deleted row <row ID>\n"
           }
         ]
       }
@@ -2444,7 +2444,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nCodaAPI.pushButton('<doc ID>', '<table ID>', '<row ID>', '<column ID>');\nLogger.log('Pushed button');\n// => Pushed button\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nSuperhumanDocs.pushButton('<doc ID>', '<table ID>', '<row ID>', '<column ID>');\nLogger.log('Pushed button');\n// => Pushed button\n"
           }
         ]
       }
@@ -2506,7 +2506,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nvar column = CodaAPI.getColumn('<doc ID>', '<table ID>', '<column ID>');\nLogger.log('Column ' + column.name + (column.display ? ' is' : ' is not') + ' the display column');\n# => Column Task is the display column\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nvar column = SuperhumanDocs.getColumn('<doc ID>', '<table ID>', '<column ID>');\nLogger.log('Column ' + column.name + (column.display ? ' is' : ' is not') + ' the display column');\n# => Column Task is the display column\n"
           }
         ]
       }
@@ -2514,7 +2514,7 @@
     "/docs/{docId}/formulas": {
       "get": {
         "summary": "List formulas",
-        "description": "Returns a list of named formulas in a Coda doc.",
+        "description": "Returns a list of named formulas in a document.",
         "operationId": "listFormulas",
         "tags": [
           "Formulas"
@@ -2571,7 +2571,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nvar formulas = CodaAPI.listFormulas('<doc ID>').items;\nvar names = formulas.map(function(formula) { return formula.name; });\nLogger.log('This doc\\'s formulas are: ' + names.join(', '));\n// => This doc's formulas are: Total Duration, Time Now\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nvar formulas = SuperhumanDocs.listFormulas('<doc ID>').items;\nvar names = formulas.map(function(formula) { return formula.name; });\nLogger.log('This doc\\'s formulas are: ' + names.join(', '));\n// => This doc's formulas are: Total Duration, Time Now\n"
           }
         ]
       }
@@ -2630,7 +2630,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nvar formula = CodaAPI.getFormula('<doc ID>', '<formula ID>');\nLogger.log('It will take ' + formula.value + ' hours to complete everything');\n// => It will take 3 hours to complete everything\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nvar formula = SuperhumanDocs.getFormula('<doc ID>', '<formula ID>');\nLogger.log('It will take ' + formula.value + ' hours to complete everything');\n// => It will take 3 hours to complete everything\n"
           }
         ]
       }
@@ -2638,7 +2638,7 @@
     "/docs/{docId}/controls": {
       "get": {
         "summary": "List controls",
-        "description": "Returns a list of controls in a Coda doc.",
+        "description": "Returns a list of controls in a document.",
         "operationId": "listControls",
         "tags": [
           "Controls"
@@ -2695,7 +2695,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nvar controls = CodaAPI.listControls('<doc ID>').items;\nvar names = controls.map(function(control) { return control.name; });\nLogger.log('Controls here are: ' + names.join(', '));\n// => Controls here are: Control 1, Control 2\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nvar controls = SuperhumanDocs.listControls('<doc ID>').items;\nvar names = controls.map(function(control) { return control.name; });\nLogger.log('Controls here are: ' + names.join(', '));\n// => Controls here are: Control 1, Control 2\n"
           }
         ]
       }
@@ -2754,7 +2754,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nvar control = CodaAPI.getControl('<doc ID>', '<control ID>');\nLogger.log('The control is a ' + control.controlType);\n// => The control is a slider\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nvar control = SuperhumanDocs.getControl('<doc ID>', '<control ID>');\nLogger.log('The control is a ' + control.controlType);\n// => The control is a slider\n"
           }
         ]
       }
@@ -3119,7 +3119,7 @@
         ],
         "responses": {
           "200": {
-            "description": "The requested Coda folder.",
+            "description": "The requested Superhuman Docs folder.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3314,7 +3314,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nLogger.log('Your name is ' + CodaAPI.whoami().name);\n// => Your name is John Doe\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nLogger.log('Your name is ' + SuperhumanDocs.whoami().name);\n// => Your name is John Doe\n"
           }
         ]
       }
@@ -3322,7 +3322,7 @@
     "/resolveBrowserLink": {
       "get": {
         "summary": "Resolve browser link",
-        "description": "Given a browser link to a Coda object, attempts to find it and return metadata that can be used to get more info on it. Returns a 400 if the URL does not appear to be a Coda URL or a 404 if the resource cannot be located with the current credentials.\n",
+        "description": "Given a browser link to a Superhuman Docs object, attempts to find it and return metadata that can be used to get more info on it. Returns a 400 if the URL does not appear to be a Superhuman Docs URL or a 404 if the resource cannot be located with the current credentials.\n",
         "operationId": "resolveBrowserLink",
         "tags": [
           "Miscellaneous"
@@ -3341,7 +3341,7 @@
           },
           {
             "name": "degradeGracefully",
-            "description": "By default, attempting to resolve the Coda URL of a deleted object will result in an error. If this flag is set, the next-available object, all the way up to the doc itself, will be resolved.\n",
+            "description": "By default, attempting to resolve the Superhuman Docs URL of a deleted object will result in an error. If this flag is set, the next-available object, all the way up to the doc itself, will be resolved.\n",
             "in": "query",
             "example": true,
             "schema": {
@@ -3391,7 +3391,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\n\nvar url = 'https://coda.io/d/Some-Doc_d<doc ID>/#To-do-List_tu<table ID>';\nvar res = CodaAPI.resolveBrowserLink({url: url});\nLogger.log('This link points to a ' + res.type + ' named ' + res.name);\n// => This link points to a table named To-do List\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\n\nvar url = 'https://coda.io/d/Some-Doc_d<doc ID>/#To-do-List_tu<table ID>';\nvar res = SuperhumanDocs.resolveBrowserLink({url: url});\nLogger.log('This link points to a ' + res.type + ' named ' + res.name);\n// => This link points to a table named To-do List\n"
           }
         ]
       }
@@ -3444,7 +3444,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nLogger.log('Request has completed? ' + CodaAPI.mutationStatus('some-request-id').completed);\n// => Request has completed? false\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nLogger.log('Request has completed? ' + SuperhumanDocs.mutationStatus('some-request-id').completed);\n// => Request has completed? false\n"
           }
         ]
       }
@@ -3571,7 +3571,7 @@
         ],
         "responses": {
           "200": {
-            "description": "List of Coda doc analytics.",
+            "description": "List of document analytics.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3637,7 +3637,7 @@
         ],
         "responses": {
           "200": {
-            "description": "List of page analytics for the given Coda doc.",
+            "description": "List of page analytics for the given document.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3691,7 +3691,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Response of Coda doc summary analytics.",
+            "description": "Response of document summary analytics.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3763,7 +3763,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Response of Coda Pack analytics.",
+            "description": "Response of Superhuman Pack analytics.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3820,7 +3820,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Response of Coda Pack summary analytics.",
+            "description": "Response of Superhuman Pack summary analytics.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3909,7 +3909,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Response of Coda Pack formula analytics.",
+            "description": "Response of Superhuman Pack formula analytics.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4009,7 +4009,7 @@
           {
             "label": "Python 3.13",
             "lang": "python",
-            "source": "import requests\n\nheaders = {'Authorization': 'Bearer <your API token>'}\nuri = 'https://coda.io/apis/v1/workspaces/<your workspace id>/users'\nparams = {\n  'limit': 10,\n}\nres = requests.get(uri, headers=headers, params=params).json()\n\nprint(f'First user is: {res[\"items\"][0][\"email\"]}')\n# => First user is: hello@coda.io\n"
+            "source": "import requests\n\nheaders = {'Authorization': 'Bearer <your API token>'}\nuri = 'https://coda.io/apis/v1/workspaces/<your workspace id>/users'\nparams = {\n  'limit': 10,\n}\nres = requests.get(uri, headers=headers, params=params).json()\n\nprint(f'First user is: {res[\"items\"][0][\"email\"]}')\n# => First user is: hello@example.com\n"
           }
         ]
       }
@@ -4066,7 +4066,7 @@
           {
             "label": "Python 3.13",
             "lang": "python",
-            "source": "import requests\n\nheaders = {'Authorization': 'Bearer <your API token>'}\nuri = 'https://coda.io/apis/v1/workspaces/<your workspace id>/users/role'\nparams = {\n  'limit': 10,\n}\nres = requests.post(uri, headers=headers, params=params).json()\n\nprint(f'First user is: {res[\"items\"][0][\"email\"]}')\n# => First user is: hello@coda.io\n"
+            "source": "import requests\n\nheaders = {'Authorization': 'Bearer <your API token>'}\nuri = 'https://coda.io/apis/v1/workspaces/<your workspace id>/users/role'\nparams = {\n  'limit': 10,\n}\nres = requests.post(uri, headers=headers, params=params).json()\n\nprint(f'First user is: {res[\"items\"][0][\"email\"]}')\n# => First user is: hello@example.com\n"
           }
         ]
       }
@@ -4176,12 +4176,6 @@
             "$ref": "#/components/parameters/excludePublicPacks"
           },
           {
-            "$ref": "#/components/parameters/excludeIndividualAcls"
-          },
-          {
-            "$ref": "#/components/parameters/excludeWorkspaceAcls"
-          },
-          {
             "$ref": "#/components/parameters/packEntrypoint"
           }
         ],
@@ -4263,7 +4257,7 @@
           {
             "label": "Google Apps Script",
             "lang": "javascript",
-            "source": "// Import the CodaAPI library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nCodaAPI.authenticate('<your API token>');\nLogger.log('Your new Pack ID is ' + CodaAPI.createPack().packId);\n// => Your new Pack ID is 123\n"
+            "source": "// Import the SuperhumanDocs library via Resource->Libraries...:\n// 15IQuWOk8MqT50FDWomh57UqWGH23gjsWVWYFms3ton6L-UHmefYHS9Vl\nSuperhumanDocs.authenticate('<your API token>');\nLogger.log('Your new Pack ID is ' + SuperhumanDocs.createPack().packId);\n// => Your new Pack ID is 123\n"
           }
         ]
       }
@@ -4404,7 +4398,7 @@
     "/packs/{packId}/configurations/schema": {
       "get": {
         "summary": "Gets the JSON Schema for Pack configuration.",
-        "description": "Returns a JSON Schema applicable for customizing the pack using Pack configurations.\n",
+        "description": "Returns a JSON Schema applicable for customizing the Pack using Pack configurations.\n",
         "operationId": "getPackConfigurationSchema",
         "tags": [
           "Packs"
@@ -4416,7 +4410,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Response containing the JSON Schema of the pack configuration.",
+            "description": "Response containing the JSON Schema of the Pack configuration.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4544,7 +4538,7 @@
     },
     "/packs/{packId}/versions/{basePackVersion}/diff/{targetPackVersion}": {
       "get": {
-        "summary": "Get the difference between two pack versions.",
+        "summary": "Get the difference between two Pack versions.",
         "description": "Gets information about the difference between the specified previous version and next version of a Pack.\n",
         "operationId": "getPackVersionDiffs",
         "tags": [
@@ -4563,7 +4557,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Diffs between the two pack versions.",
+            "description": "Diffs between the two Pack versions.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4859,8 +4853,8 @@
     },
     "/packs/{packId}/reviews": {
       "get": {
-        "summary": "List pack reviews",
-        "description": "List reviews for a specific pack.",
+        "summary": "List Pack reviews",
+        "description": "List reviews for a specific Pack.",
         "operationId": "listPackReviews",
         "tags": [
           "Packs"
@@ -4893,7 +4887,7 @@
         ],
         "responses": {
           "200": {
-            "description": "List of pack reviews",
+            "description": "List of Pack reviews",
             "content": {
               "application/json": {
                 "schema": {
@@ -4920,8 +4914,8 @@
         }
       },
       "post": {
-        "summary": "Create pack review",
-        "description": "Submit a pack for review in Superhuman GO.",
+        "summary": "Create Pack review",
+        "description": "Submit a Pack for review in Superhuman GO.",
         "operationId": "createPackReview",
         "tags": [
           "Packs"
@@ -4932,7 +4926,7 @@
           }
         ],
         "requestBody": {
-          "description": "Parameters for creating pack review.",
+          "description": "Parameters for creating Pack review.",
           "required": true,
           "content": {
             "application/json": {
@@ -4973,8 +4967,8 @@
     },
     "/packs/{packId}/reviews/pending/cancel": {
       "post": {
-        "summary": "Cancel pending pack review",
-        "description": "Cancel the pending pack review for this pack. Any user with edit permission on the pack can cancel the review.",
+        "summary": "Cancel pending Pack review",
+        "description": "Cancel the pending Pack review for this Pack. Any user with edit permission on the Pack can cancel the review.",
         "operationId": "cancelPackReview",
         "tags": [
           "Packs"
@@ -5423,7 +5417,7 @@
       },
       "post": {
         "summary": "Add a permission for Pack",
-        "description": "Create or modify user, workspace, or global permissions for a given Pack.\n",
+        "description": "Create or modify user, workspace, organization, group, or global permissions for a given Pack.\n",
         "operationId": "addPackPermission",
         "tags": [
           "Packs"
@@ -5851,7 +5845,7 @@
     "/packs/{packId}/makers": {
       "get": {
         "summary": "List makers for Pack",
-        "description": "List makers for a given pack.\n",
+        "description": "List makers for a given Pack.\n",
         "operationId": "listPackMakers",
         "tags": [
           "Packs"
@@ -5893,7 +5887,7 @@
     "/packs/{packId}/maker": {
       "post": {
         "summary": "Add a maker for Pack",
-        "description": "Set a maker for a given Pack. Used to display makers for a pack in the corresponding packs page.\n",
+        "description": "Set a maker for a given Pack. Used to display makers for a Pack in the corresponding Packs page.\n",
         "operationId": "addPackMaker",
         "tags": [
           "Packs"
@@ -5946,7 +5940,7 @@
     "/packs/{packId}/maker/{loginId}": {
       "delete": {
         "summary": "Delete a maker for Pack",
-        "description": "Delete a maker for a given Pack, who will not be displayed in the corresponding packs page.\n",
+        "description": "Delete a maker for a given Pack, who will not be displayed in the corresponding Packs page.\n",
         "operationId": "deletePackMaker",
         "tags": [
           "Packs"
@@ -5991,7 +5985,7 @@
     "/packs/{packId}/categories": {
       "get": {
         "summary": "List categories for Pack",
-        "description": "List publishing categories for a given pack.\n",
+        "description": "List publishing categories for a given Pack.\n",
         "operationId": "listPackCategories",
         "tags": [
           "Packs"
@@ -6033,7 +6027,7 @@
     "/packs/{packId}/category": {
       "post": {
         "summary": "Add a category for Pack",
-        "description": "Add a publishing category for a given pack.\n",
+        "description": "Add a publishing category for a given Pack.\n",
         "operationId": "addPackCategory",
         "tags": [
           "Packs"
@@ -6086,7 +6080,7 @@
     "/packs/{packId}/category/{categoryName}": {
       "delete": {
         "summary": "Delete a category for Pack",
-        "description": "Delete a publishing category for a given pack.\n",
+        "description": "Delete a publishing category for a given Pack.\n",
         "operationId": "deletePackCategory",
         "tags": [
           "Packs"
@@ -6405,16 +6399,13 @@
             "$ref": "#/components/parameters/excludePublicPacks"
           },
           {
-            "$ref": "#/components/parameters/excludeWorkspaceAcls"
-          },
-          {
-            "$ref": "#/components/parameters/excludeIndividualAcls"
-          },
-          {
             "$ref": "#/components/parameters/packEntrypoint"
           },
           {
             "$ref": "#/components/parameters/certifiedAgentsOnly"
+          },
+          {
+            "$ref": "#/components/parameters/packCategories"
           },
           {
             "name": "sortBy",
@@ -6946,7 +6937,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Grouped pack logs.",
+            "description": "Grouped Pack logs.",
             "content": {
               "application/json": {
                 "schema": {
@@ -7058,7 +7049,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Grouped pack logs.",
+            "description": "Grouped Pack logs.",
             "content": {
               "application/json": {
                 "schema": {
@@ -8529,7 +8520,7 @@
       },
       "DocReference": {
         "x-schema-name": "DocReference",
-        "description": "Reference to a Coda doc.",
+        "description": "Reference to a document.",
         "type": "object",
         "required": [
           "id",
@@ -8541,7 +8532,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "description": "ID of the Coda doc.",
+            "description": "ID of the document.",
             "example": "AbCDeFGH"
           },
           "type": {
@@ -8555,20 +8546,20 @@
           "href": {
             "type": "string",
             "format": "url",
-            "description": "API link to the Coda doc.",
+            "description": "API link to the document.",
             "example": "https://coda.io/apis/v1/docs/AbCDeFGH"
           },
           "browserLink": {
             "type": "string",
             "format": "url",
-            "description": "Browser-friendly link to the Coda doc.",
+            "description": "Browser-friendly link to the document.",
             "example": "https://coda.io/d/_dAbCDeFGH"
           }
         }
       },
       "Doc": {
         "x-schema-name": "Doc",
-        "description": "Metadata about a Coda doc.",
+        "description": "Metadata about a document.",
         "type": "object",
         "required": [
           "id",
@@ -8589,7 +8580,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "description": "ID of the Coda doc.",
+            "description": "ID of the document.",
             "example": "AbCDeFGH"
           },
           "type": {
@@ -8603,13 +8594,13 @@
           "href": {
             "type": "string",
             "format": "url",
-            "description": "API link to the Coda doc.",
+            "description": "API link to the document.",
             "example": "https://coda.io/apis/v1/docs/AbCDeFGH"
           },
           "browserLink": {
             "type": "string",
             "format": "url",
-            "description": "Browser-friendly link to the Coda doc.",
+            "description": "Browser-friendly link to the document.",
             "example": "https://coda.io/d/_dAbCDeFGH"
           },
           "icon": {
@@ -8638,7 +8629,7 @@
             "allOf": [
               {
                 "type": "object",
-                "description": "Reference to a Coda doc from which this doc was copied, if any.",
+                "description": "Reference to a document from which this document was copied, if any.",
                 "additionalProperties": false
               },
               {
@@ -8669,13 +8660,13 @@
           },
           "workspaceId": {
             "type": "string",
-            "description": "ID of the Coda workspace containing this doc.",
+            "description": "ID of the Superhuman Docs workspace containing this document.",
             "example": "ws-1Ab234",
             "deprecated": true
           },
           "folderId": {
             "type": "string",
-            "description": "ID of the Coda folder containing this doc.",
+            "description": "ID of the Superhuman Docs folder containing this document.",
             "example": "fl-1Ab234",
             "deprecated": true
           }
@@ -8717,7 +8708,7 @@
       },
       "DocList": {
         "x-schema-name": "DocList",
-        "description": "List of Coda docs.",
+        "description": "List of documents.",
         "type": "object",
         "required": [
           "items"
@@ -8819,7 +8810,7 @@
       },
       "DocSize": {
         "x-schema-name": "DocSize",
-        "description": "The number of components within a Coda doc.",
+        "description": "The number of components within a document.",
         "type": "object",
         "required": [
           "totalRowCount",
@@ -8869,7 +8860,7 @@
           },
           "earnCredit": {
             "type": "boolean",
-            "description": "If true, new users may be required to sign in to view content within this document. You will receive Coda credit for each user who signs up via your doc.\n",
+            "description": "If true, new users may be required to sign in to view content within this document. You will receive Superhuman Docs credit for each user who signs up via your document.\n",
             "example": true
           },
           "categoryNames": {
@@ -8908,7 +8899,7 @@
           "browserLink": {
             "type": "string",
             "description": "URL to the published doc.",
-            "example": "https://coda.io/@coda/hello-world"
+            "example": "https://coda.io/@user/hello-world"
           },
           "imageLink": {
             "type": "string",
@@ -8921,7 +8912,7 @@
           },
           "earnCredit": {
             "type": "boolean",
-            "description": "If true, new users may be required to sign in to view content within this document. You will receive Coda credit for each user who signs up via your doc.\n",
+            "description": "If true, new users may be required to sign in to view content within this document. You will receive Superhuman Docs credit for each user who signs up via your document.\n",
             "example": true
           },
           "mode": {
@@ -8998,7 +8989,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "description": "ID of the Coda doc.",
+            "description": "ID of the document.",
             "example": "AbCDeFGH"
           },
           "type": {
@@ -9012,13 +9003,13 @@
           "href": {
             "type": "string",
             "format": "url",
-            "description": "API link to the Coda doc.",
+            "description": "API link to the document.",
             "example": "https://coda.io/apis/v1/docs/AbCDeFGH"
           },
           "browserLink": {
             "type": "string",
             "format": "url",
-            "description": "Browser-friendly link to the Coda doc.",
+            "description": "Browser-friendly link to the document.",
             "example": "https://coda.io/d/_dAbCDeFGH"
           },
           "icon": {
@@ -9047,7 +9038,7 @@
             "allOf": [
               {
                 "type": "object",
-                "description": "Reference to a Coda doc from which this doc was copied, if any.",
+                "description": "Reference to a document from which this document was copied, if any.",
                 "additionalProperties": false
               },
               {
@@ -9078,13 +9069,13 @@
           },
           "workspaceId": {
             "type": "string",
-            "description": "ID of the Coda workspace containing this doc.",
+            "description": "ID of the Superhuman Docs workspace containing this document.",
             "example": "ws-1Ab234",
             "deprecated": true
           },
           "folderId": {
             "type": "string",
-            "description": "ID of the Coda folder containing this doc.",
+            "description": "ID of the Superhuman Docs folder containing this document.",
             "example": "fl-1Ab234",
             "deprecated": true
           },
@@ -9282,7 +9273,7 @@
       },
       "Folder": {
         "x-schema-name": "Folder",
-        "description": "A Coda folder.",
+        "description": "A Superhuman Docs folder.",
         "type": "object",
         "required": [
           "id",
@@ -9295,7 +9286,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "description": "ID of the Coda folder.",
+            "description": "ID of the Superhuman Docs folder.",
             "example": "fl-1Ab234"
           },
           "type": {
@@ -9315,7 +9306,7 @@
             "type": "string",
             "format": "url",
             "description": "Browser-friendly link to the folder.",
-            "example": "https://coda.io/folders/fl-1Ab234"
+            "example": "https://docs.superhuman.com/folders/fl-1Ab234"
           },
           "description": {
             "type": "string",
@@ -9838,7 +9829,7 @@
                 "properties": {
                   "type": {
                     "type": "string",
-                    "description": "Indicates a page that embeds other Coda content.",
+                    "description": "Indicates a page that embeds other Superhuman Docs content.",
                     "enum": [
                       "syncPage"
                     ],
@@ -11801,7 +11792,7 @@
       },
       "ScalarValue": {
         "x-schema-name": "ScalarValue",
-        "description": "A Coda result or entity expressed as a primitive type.",
+        "description": "A Superhuman Docs result or entity expressed as a primitive type.",
         "oneOf": [
           {
             "type": "string",
@@ -11819,7 +11810,7 @@
       },
       "Value": {
         "x-schema-name": "Value",
-        "description": "A Coda result or entity expressed as a primitive type, or array of primitive types.",
+        "description": "A Superhuman Docs result or entity expressed as a primitive type, or array of primitive types.",
         "additionalProperties": false,
         "oneOf": [
           {
@@ -11897,7 +11888,7 @@
       },
       "RowValue": {
         "x-schema-name": "RowValue",
-        "description": "A value representing a Coda row.",
+        "description": "A value representing a Superhuman Docs row.",
         "allOf": [
           {
             "$ref": "#/components/schemas/LinkedDataObject"
@@ -11979,7 +11970,7 @@
           },
           "additionalType": {
             "type": "string",
-            "description": "An identifier of additional type info specific to Coda that may not be present in a schema.org taxonomy,\n"
+            "description": "An identifier of additional type info specific to Superhuman Docs that may not be present in a schema.org taxonomy,\n"
           }
         }
       },
@@ -12032,7 +12023,7 @@
               "url": {
                 "type": "string",
                 "description": "The url of the hyperlink.",
-                "example": "https://coda.io"
+                "example": "https://example.com"
               }
             }
           }
@@ -13199,7 +13190,7 @@
       },
       "FolderReference": {
         "x-schema-name": "FolderReference",
-        "description": "Reference to a Coda folder.",
+        "description": "Reference to a Superhuman Docs folder.",
         "type": "object",
         "required": [
           "id",
@@ -13210,7 +13201,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "description": "ID of the Coda folder.",
+            "description": "ID of the Superhuman Docs folder.",
             "example": "fl-1Ab234"
           },
           "type": {
@@ -13236,7 +13227,7 @@
       },
       "WorkspaceReference": {
         "x-schema-name": "WorkspaceReference",
-        "description": "Reference to a Coda workspace.",
+        "description": "Reference to a Superhuman Docs workspace.",
         "type": "object",
         "required": [
           "id",
@@ -13247,7 +13238,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "description": "ID of the Coda workspace.",
+            "description": "ID of the Superhuman Docs workspace.",
             "example": "ws-1Ab234"
           },
           "type": {
@@ -13266,7 +13257,7 @@
           "browserLink": {
             "type": "string",
             "format": "url",
-            "description": "Browser-friendly link to the Coda workspace.",
+            "description": "Browser-friendly link to the Superhuman Docs workspace.",
             "example": "https://coda.io/docs?workspaceId=ws-1Ab234"
           },
           "name": {
@@ -13278,7 +13269,7 @@
       },
       "Workspace": {
         "x-schema-name": "Workspace",
-        "description": "Metadata about a Coda workspace.",
+        "description": "Metadata about a Superhuman Docs workspace.",
         "type": "object",
         "required": [
           "id",
@@ -13290,7 +13281,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "description": "ID of the Coda workspace.",
+            "description": "ID of the Superhuman Docs workspace.",
             "example": "ws-1Ab234"
           },
           "type": {
@@ -13309,13 +13300,13 @@
           "browserLink": {
             "type": "string",
             "format": "url",
-            "description": "Browser-friendly link to the Coda workspace.",
+            "description": "Browser-friendly link to the Superhuman Docs workspace.",
             "example": "https://coda.io/docs?workspaceId=ws-1Ab234"
           },
           "name": {
             "type": "string",
             "description": "Name of the workspace.",
-            "example": "coda.io"
+            "example": "example.com"
           },
           "description": {
             "type": "string",
@@ -13339,7 +13330,7 @@
           "email": {
             "type": "string",
             "description": "Email of the user.",
-            "example": "hello@coda.io"
+            "example": "hello@example.com"
           },
           "name": {
             "type": "string",
@@ -13534,7 +13525,7 @@
           "email": {
             "type": "string",
             "description": "Email of the user.",
-            "example": "hello@coda.io"
+            "example": "hello@example.com"
           },
           "newRole": {
             "$ref": "#/components/schemas/WorkspaceUserRole"
@@ -13560,7 +13551,7 @@
       },
       "DocAnalyticsItem": {
         "x-schema-name": "DocAnalyticsItem",
-        "description": "Analytics data for a Coda doc.",
+        "description": "Analytics data for a document.",
         "type": "object",
         "required": [
           "doc",
@@ -13581,7 +13572,7 @@
       },
       "DocAnalyticsCollection": {
         "x-schema-name": "DocAnalyticsCollection",
-        "description": "List of analytics for Coda docs over a date range.",
+        "description": "List of analytics for documents over a date range.",
         "type": "object",
         "required": [
           "items"
@@ -13612,7 +13603,7 @@
       },
       "DocAnalyticsMetrics": {
         "x-schema-name": "DocAnalyticsMetrics",
-        "description": "Analytics metrics for a Coda Doc.",
+        "description": "Analytics metrics for a document.",
         "type": "object",
         "required": [
           "date",
@@ -13791,7 +13782,7 @@
       },
       "DocAnalyticsSummary": {
         "x-schema-name": "DocAnalyticsSummary",
-        "description": "Summarized metrics for Coda docs.",
+        "description": "Summarized metrics for documents.",
         "type": "object",
         "required": [
           "totalSessions"
@@ -13807,7 +13798,7 @@
       },
       "PageAnalyticsMetrics": {
         "x-schema-name": "PageAnalyticsMetrics",
-        "description": "Analytics metrics for a page within a Coda doc.",
+        "description": "Analytics metrics for a page within a document.",
         "type": "object",
         "required": [
           "date",
@@ -13838,7 +13829,7 @@
           },
           "users": {
             "type": "integer",
-            "description": "Number of unique Coda users that viewed the page on the given day.",
+            "description": "Number of unique Superhuman Docs users that viewed the page on the given day.",
             "example": 42
           },
           "averageSecondsViewed": {
@@ -13860,7 +13851,7 @@
       },
       "PageAnalyticsItem": {
         "x-schema-name": "PageAnalyticsItem",
-        "description": "Analytics data for a page within a Coda doc.",
+        "description": "Analytics data for a page within a document.",
         "type": "object",
         "required": [
           "page",
@@ -13906,7 +13897,7 @@
       },
       "PageAnalyticsCollection": {
         "x-schema-name": "PageAnalyticsCollection",
-        "description": "List of analytics for pages within a Coda doc over a date range.",
+        "description": "List of analytics for pages within a document over a date range.",
         "type": "object",
         "required": [
           "items"
@@ -13971,7 +13962,7 @@
       },
       "PackAnalyticsCollection": {
         "x-schema-name": "PackAnalyticsCollection",
-        "description": "List of analytics for Coda Packs over a date range.",
+        "description": "List of analytics for Superhuman Packs over a date range.",
         "type": "object",
         "required": [
           "items"
@@ -14002,7 +13993,7 @@
       },
       "PackAnalyticsItem": {
         "x-schema-name": "PackAnalyticsItem",
-        "description": "Analytics data for a Coda Pack.",
+        "description": "Analytics data for a Superhuman Pack.",
         "type": "object",
         "required": [
           "pack",
@@ -14023,7 +14014,7 @@
       },
       "PackAnalyticsMetrics": {
         "x-schema-name": "PackAnalyticsMetrics",
-        "description": "Analytics metrics for a Coda Pack.",
+        "description": "Analytics metrics for a Superhuman Pack.",
         "type": "object",
         "additionalProperties": false,
         "required": [
@@ -14274,7 +14265,7 @@
       },
       "PackFormulaAnalyticsMetrics": {
         "x-schema-name": "PackFormulaAnalyticsMetrics",
-        "description": "Analytics metrics for a Coda Pack formula.",
+        "description": "Analytics metrics for a Superhuman Pack formula.",
         "type": "object",
         "required": [
           "date",
@@ -14409,7 +14400,7 @@
       },
       "PackFormulaAnalyticsItem": {
         "x-schema-name": "PackFormulaAnalyticsItem",
-        "description": "Analytics data for a Coda Pack formula.",
+        "description": "Analytics data for a Superhuman Pack formula.",
         "type": "object",
         "required": [
           "formula",
@@ -14430,7 +14421,7 @@
       },
       "PackFormulaAnalyticsCollection": {
         "x-schema-name": "PackFormulaAnalyticsCollection",
-        "description": "A collection of analytics for Coda Packs formulas over a date range.",
+        "description": "A collection of analytics for Superhuman Packs formulas over a date range.",
         "type": "object",
         "required": [
           "items"
@@ -14590,25 +14581,25 @@
           },
           "certified": {
             "type": "boolean",
-            "description": "Denotes if the pack is certified by Coda."
+            "description": "Denotes if the Pack is certified by Superhuman."
           },
           "certifiedAgent": {
             "type": "boolean",
-            "description": "Denotes if the pack is certified by Grammarly to be optimized for agent usage."
+            "description": "Denotes if the Pack is certified by Grammarly to be optimized for agent usage."
           },
           "sourceCodeVisibility": {
             "$ref": "#/components/schemas/PackSourceCodeVisibility"
           },
           "packEntrypoints": {
             "type": "array",
-            "description": "Pack entrypoints where this pack is available",
+            "description": "Pack entrypoints where this Pack is available",
             "items": {
               "$ref": "#/components/schemas/PackEntrypoint"
             }
           },
           "verifiedVersion": {
             "type": "string",
-            "description": "The latest released pack version that has been verified (approved) for use. For agent packs, this is the most recent release that passed review. For non-agent packs or legacy releases, this is the most recent release.",
+            "description": "The latest released Pack version that has been verified (approved) for use. For agent Packs, this is the most recent release that passed review. For non-agent Packs or legacy releases, this is the most recent release.",
             "example": "1.0.0"
           },
           "name": {
@@ -14631,13 +14622,13 @@
           },
           "agentShortDescription": {
             "type": "string",
-            "description": "A short description for the pack as an agent.",
+            "description": "A short description for the Pack as an agent.",
             "example": "Chat with a tool that can calculate cool geometric formulas like surface area.",
             "maxLength": 256
           },
           "agentDescription": {
             "type": "string",
-            "description": "A full description for the pack as an agent.",
+            "description": "A full description for the Pack as an agent.",
             "example": "Chat with a comprehensive tool that can calculate cool geometric formulas like surface area, volume, and other mathematical operations. This agent can help with complex calculations and provide detailed explanations.",
             "x-allow-empty": true,
             "maxLength": 8192
@@ -14668,6 +14659,9 @@
           },
           "featuredDocStatus": {
             "$ref": "#/components/schemas/FeaturedDocStatus"
+          },
+          "additionalInformation": {
+            "$ref": "#/components/schemas/PackListingAdditionalInformation"
           }
         }
       },
@@ -14728,25 +14722,25 @@
           },
           "certified": {
             "type": "boolean",
-            "description": "Denotes if the pack is certified by Coda."
+            "description": "Denotes if the Pack is certified by Superhuman."
           },
           "certifiedAgent": {
             "type": "boolean",
-            "description": "Denotes if the pack is certified by Grammarly to be optimized for agent usage."
+            "description": "Denotes if the Pack is certified by Grammarly to be optimized for agent usage."
           },
           "sourceCodeVisibility": {
             "$ref": "#/components/schemas/PackSourceCodeVisibility"
           },
           "packEntrypoints": {
             "type": "array",
-            "description": "Pack entrypoints where this pack is available",
+            "description": "Pack entrypoints where this Pack is available",
             "items": {
               "$ref": "#/components/schemas/PackEntrypoint"
             }
           },
           "verifiedVersion": {
             "type": "string",
-            "description": "The latest released pack version that has been verified (approved) for use. For agent packs, this is the most recent release that passed review. For non-agent packs or legacy releases, this is the most recent release.",
+            "description": "The latest released Pack version that has been verified (approved) for use. For agent Packs, this is the most recent release that passed review. For non-agent Packs or legacy releases, this is the most recent release.",
             "example": "1.0.0"
           },
           "name": {
@@ -14769,13 +14763,13 @@
           },
           "agentShortDescription": {
             "type": "string",
-            "description": "A short description for the pack as an agent.",
+            "description": "A short description for the Pack as an agent.",
             "example": "Chat with a tool that can calculate cool geometric formulas like surface area.",
             "maxLength": 256
           },
           "agentDescription": {
             "type": "string",
-            "description": "A full description for the pack as an agent.",
+            "description": "A full description for the Pack as an agent.",
             "example": "Chat with a comprehensive tool that can calculate cool geometric formulas like surface area, volume, and other mathematical operations. This agent can help with complex calculations and provide detailed explanations.",
             "x-allow-empty": true,
             "maxLength": 8192
@@ -14929,6 +14923,12 @@
             "$ref": "#/components/schemas/PackGlobalPrincipal"
           },
           {
+            "$ref": "#/components/schemas/PackNomosOrganizationPrincipal"
+          },
+          {
+            "$ref": "#/components/schemas/PackGroupPrincipal"
+          },
+          {
             "$ref": "#/components/schemas/PackGrammarlyInstitutionPrincipal"
           }
         ],
@@ -14938,6 +14938,8 @@
             "user": "#/components/schemas/PackUserPrincipal",
             "workspace": "#/components/schemas/PackWorkspacePrincipal",
             "global": "#/components/schemas/PackGlobalPrincipal",
+            "nomosOrganization": "#/components/schemas/PackNomosOrganizationPrincipal",
+            "group": "#/components/schemas/PackGroupPrincipal",
             "grammarlyInstitution": "#/components/schemas/PackGrammarlyInstitutionPrincipal"
           }
         }
@@ -14950,12 +14952,16 @@
           "user",
           "workspace",
           "worldwide",
+          "nomosOrganization",
+          "group",
           "grammarlyInstitution"
         ],
         "x-tsEnumNames": [
           "User",
           "Workspace",
           "Worldwide",
+          "NomosOrganization",
+          "Group",
           "GrammarlyInstitution"
         ]
       },
@@ -15054,6 +15060,51 @@
               "worldwide"
             ],
             "x-tsType": "PackPrincipalType.Worldwide"
+          }
+        }
+      },
+      "PackNomosOrganizationPrincipal": {
+        "x-schema-name": "PackNomosOrganizationPrincipal",
+        "type": "object",
+        "required": [
+          "type",
+          "nomosOrganizationId"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "nomosOrganization"
+            ],
+            "x-tsType": "PackPrincipalType.NomosOrganization"
+          },
+          "nomosOrganizationId": {
+            "type": "string"
+          }
+        }
+      },
+      "PackGroupPrincipal": {
+        "x-schema-name": "PackGroupPrincipal",
+        "type": "object",
+        "required": [
+          "type",
+          "groupId"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "group"
+            ],
+            "x-tsType": "PackPrincipalType.Group"
+          },
+          "groupId": {
+            "type": "string"
+          },
+          "groupName": {
+            "type": "string"
           }
         }
       },
@@ -15351,7 +15402,7 @@
       },
       "PackConfigurationEntry": {
         "x-schema-name": "PackConfigurationEntry",
-        "description": "Basic details about a configuration that can be used in conjunction with a pack",
+        "description": "Basic details about a configuration that can be used in conjunction with a Pack",
         "type": "object",
         "required": [
           "configurationId",
@@ -15375,7 +15426,7 @@
       },
       "PackOrganizationAccessForDocs": {
         "x-schema-name": "PackOrganizationAccessForDocs",
-        "description": "Describes restrictions that a user's organization has placed on a pack",
+        "description": "Describes restrictions that a user's organization has placed on a Pack",
         "type": "object",
         "required": [
           "canRequestAccess",
@@ -15454,7 +15505,7 @@
           "creationUserLoginId": {
             "type": "string",
             "description": "The login ID of creation user of the Pack version.",
-            "example": "api@coda.io"
+            "example": "api@example.com"
           },
           "releaseId": {
             "type": "number",
@@ -15594,7 +15645,7 @@
       },
       "CreatePackReviewRequest": {
         "x-schema-name": "CreatePackReviewRequest",
-        "description": "Request to create a pack review",
+        "description": "Request to create a Pack review",
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -15605,7 +15656,7 @@
           "releaseNotes": {
             "type": "string",
             "maxLength": 8192,
-            "description": "Release notes for this version (used when pack is approved and released)"
+            "description": "Release notes for this version (used when Pack is approved and released)"
           }
         }
       },
@@ -15627,14 +15678,14 @@
       },
       "CancelPackReviewResponse": {
         "x-schema-name": "CancelPackReviewResponse",
-        "description": "Response confirming the pack review was canceled",
+        "description": "Response confirming the Pack review was canceled",
         "type": "object",
         "additionalProperties": false,
         "properties": {}
       },
       "PackReviewStatus": {
         "x-schema-name": "PackReviewStatus",
-        "description": "The status of a pack review",
+        "description": "The status of a Pack review",
         "type": "string",
         "enum": [
           "pending",
@@ -15653,7 +15704,7 @@
       },
       "PackReview": {
         "x-schema-name": "PackReview",
-        "description": "A pack review submission",
+        "description": "A Pack review submission",
         "type": "object",
         "required": [
           "packReviewId",
@@ -15671,7 +15722,7 @@
           },
           "packId": {
             "type": "integer",
-            "description": "ID of the pack being reviewed"
+            "description": "ID of the Pack being reviewed"
           },
           "packVersion": {
             "type": "string",
@@ -15700,22 +15751,10 @@
       },
       "PackReviewAdditionalInformation": {
         "x-schema-name": "PackReviewAdditionalInformation",
-        "description": "Additional information about the pack review",
+        "description": "Additional information about the Pack review",
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "videoWalkthrough": {
-            "type": "string",
-            "nullable": true,
-            "description": "URL or reference to video walkthrough for agent verification.",
-            "maxLength": 512
-          },
-          "additionalDetails": {
-            "type": "string",
-            "nullable": true,
-            "description": "Additional details for the pack review.",
-            "maxLength": 8192
-          },
           "privacyCollectsPersonalInfo": {
             "type": "boolean",
             "nullable": true,
@@ -15749,7 +15788,7 @@
       },
       "ListPackReviewsResponse": {
         "x-schema-name": "ListPackReviewsResponse",
-        "description": "Response containing pack reviews",
+        "description": "Response containing Pack reviews",
         "type": "object",
         "required": [
           "items"
@@ -15758,7 +15797,7 @@
         "properties": {
           "items": {
             "type": "array",
-            "description": "List of pack reviews",
+            "description": "List of Pack reviews",
             "items": {
               "$ref": "#/components/schemas/PackReview"
             }
@@ -15856,24 +15895,94 @@
           }
         }
       },
-      "PackListingAdditionalInformation": {
-        "x-schema-name": "PackListingAdditionalInformation",
-        "description": "Additional information saved with the pack listing draft",
+      "PackListingDraftInputData": {
+        "x-schema-name": "PackListingDraftInputData",
+        "description": "Input data for creating or updating a Pack listing draft. Agent images only require assetId and filename; the server resolves the full image URL.",
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "videoWalkthrough": {
+          "name": {
             "type": "string",
-            "nullable": true,
-            "description": "URL or reference to video walkthrough for agent verification.",
-            "maxLength": 512
+            "description": "The name of the Pack.",
+            "maxLength": 128
           },
-          "additionalDetails": {
+          "description": {
             "type": "string",
-            "nullable": true,
-            "description": "Additional details for the pack review.",
+            "description": "The full description of the Pack.",
             "maxLength": 8192
           },
+          "shortDescription": {
+            "type": "string",
+            "description": "A short version of the description of the Pack.",
+            "maxLength": 256
+          },
+          "logo": {
+            "$ref": "#/components/schemas/PackImageFile"
+          },
+          "cover": {
+            "$ref": "#/components/schemas/PackImageFile"
+          },
+          "exampleImages": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/PackImageFile"
+            }
+          },
+          "agentImages": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/ImageFileForUpdatePackRequest"
+            }
+          },
+          "categoryIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "supportEmail": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 512
+          },
+          "termsOfServiceUrl": {
+            "type": "string",
+            "format": "url",
+            "nullable": true,
+            "maxLength": 512
+          },
+          "privacyPolicyUrl": {
+            "type": "string",
+            "format": "url",
+            "nullable": true,
+            "maxLength": 512
+          },
+          "sourceCodeVisibility": {
+            "$ref": "#/components/schemas/PackSourceCodeVisibility"
+          },
+          "agentShortDescription": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 256
+          },
+          "agentDescription": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 8192
+          },
+          "additionalInformation": {
+            "$ref": "#/components/schemas/PackListingAdditionalInformation"
+          }
+        }
+      },
+      "PackListingAdditionalInformation": {
+        "x-schema-name": "PackListingAdditionalInformation",
+        "description": "Additional information saved with the Pack listing draft",
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
           "privacyCollectsPersonalInfo": {
             "type": "boolean",
             "nullable": true,
@@ -15931,7 +16040,7 @@
         "additionalProperties": false,
         "properties": {
           "listingData": {
-            "$ref": "#/components/schemas/PackListingDraftData"
+            "$ref": "#/components/schemas/PackListingDraftInputData"
           }
         }
       },
@@ -16055,12 +16164,16 @@
         "type": "string",
         "enum": [
           "public",
+          "nomosOrganization",
+          "group",
           "grammarlyInstitution",
           "workspace",
           "private"
         ],
         "x-tsEnumNames": [
           "Public",
+          "NomosOrganization",
+          "Group",
           "GrammarlyInstitution",
           "Workspace",
           "Private"
@@ -16082,7 +16195,8 @@
           "externalMetadataUrl",
           "categories",
           "makers",
-          "sdkVersion"
+          "sdkVersion",
+          "packCategoryType"
         ],
         "properties": {
           "packId": {
@@ -16156,12 +16270,12 @@
           },
           "agentShortDescription": {
             "type": "string",
-            "description": "A short description for the pack as an agent.",
+            "description": "A short description for the Pack as an agent.",
             "example": "Chat with a tool that can calculate cool geometric formulas like surface area."
           },
           "agentDescription": {
             "type": "string",
-            "description": "A full description for the pack as an agent.",
+            "description": "A full description for the Pack as an agent.",
             "example": "Chat with a comprehensive tool that can calculate cool geometric formulas like surface area, volume, and other mathematical operations. This agent can help with complex calculations and provide detailed explanations."
           },
           "supportEmail": {
@@ -16195,11 +16309,11 @@
           },
           "certified": {
             "type": "boolean",
-            "description": "Denotes if the pack is certified by Coda."
+            "description": "Denotes if the Pack is certified by Superhuman."
           },
           "certifiedAgent": {
             "type": "boolean",
-            "description": "Denotes if the pack is certified by Grammarly to be optimized for agent usage."
+            "description": "Denotes if the Pack is certified by Superhuman to be optimized for agent usage."
           },
           "minimumFeatureSet": {
             "$ref": "#/components/schemas/FeatureSet"
@@ -16225,6 +16339,9 @@
             "type": "string",
             "description": "What Packs SDK version was this version built on.",
             "example": "1.5.1"
+          },
+          "packCategoryType": {
+            "$ref": "#/components/schemas/PackCategoryType"
           }
         }
       },
@@ -16246,7 +16363,8 @@
           "makers",
           "userAccess",
           "externalMetadataUrl",
-          "sdkVersion"
+          "sdkVersion",
+          "packCategoryType"
         ],
         "properties": {
           "packId": {
@@ -16320,12 +16438,12 @@
           },
           "agentShortDescription": {
             "type": "string",
-            "description": "A short description for the pack as an agent.",
+            "description": "A short description for the Pack as an agent.",
             "example": "Chat with a tool that can calculate cool geometric formulas like surface area."
           },
           "agentDescription": {
             "type": "string",
-            "description": "A full description for the pack as an agent.",
+            "description": "A full description for the Pack as an agent.",
             "example": "Chat with a comprehensive tool that can calculate cool geometric formulas like surface area, volume, and other mathematical operations. This agent can help with complex calculations and provide detailed explanations."
           },
           "supportEmail": {
@@ -16359,11 +16477,11 @@
           },
           "certified": {
             "type": "boolean",
-            "description": "Denotes if the pack is certified by Coda."
+            "description": "Denotes if the Pack is certified by Superhuman."
           },
           "certifiedAgent": {
             "type": "boolean",
-            "description": "Denotes if the pack is certified by Grammarly to be optimized for agent usage."
+            "description": "Denotes if the Pack is certified by Superhuman to be optimized for agent usage."
           },
           "minimumFeatureSet": {
             "$ref": "#/components/schemas/FeatureSet"
@@ -16390,6 +16508,9 @@
             "description": "What Packs SDK version was this version built on.",
             "example": "1.5.1"
           },
+          "packCategoryType": {
+            "$ref": "#/components/schemas/PackCategoryType"
+          },
           "discoverability": {
             "$ref": "#/components/schemas/PackDiscoverability"
           },
@@ -16398,7 +16519,7 @@
           },
           "codaHelpCenterUrl": {
             "type": "string",
-            "description": "The URL of a Coda Help Center article with documentation about the Pack. This will only exist for select Coda-authored Packs."
+            "description": "The URL of a Superhuman Docs Help Center article with documentation about the Pack. This will only exist for select Superhuman Docs-authored Packs."
           },
           "configuration": {
             "$ref": "#/components/schemas/PackConfigurationEntry"
@@ -16483,6 +16604,21 @@
           }
         }
       },
+      "PackCategoryType": {
+        "x-schema-name": "PackCategoryType",
+        "description": "The category of a Pack.",
+        "type": "string",
+        "enum": [
+          "connector",
+          "agent",
+          "customAgent"
+        ],
+        "x-tsEnumNames": [
+          "Connector",
+          "Agent",
+          "CustomAgent"
+        ]
+      },
       "PackUserAccess": {
         "x-schema-name": "PackUserAccess",
         "type": "object",
@@ -16550,7 +16686,7 @@
       },
       "IngestionPackReleaseChannel": {
         "x-schema-name": "IngestionPackReleaseChannel",
-        "description": "Live or Latest version of pack",
+        "description": "Live or Latest version of Pack",
         "type": "string",
         "enum": [
           "LIVE",
@@ -16610,7 +16746,7 @@
       },
       "PackOrganizationAccessForCodaBrain": {
         "x-schema-name": "PackOrganizationAccessForCodaBrain",
-        "description": "Describes restrictions that a user's organization has placed on a pack for Coda Brain ingestions",
+        "description": "Describes restrictions that a user's organization has placed on a Pack for Coda Brain ingestions",
         "type": "object",
         "required": [
           "canRequestAccess",
@@ -16995,7 +17131,7 @@
           },
           "domain": {
             "type": "string",
-            "description": "The domain corresponding to the pre-authorized network domain in the pack."
+            "description": "The domain corresponding to the pre-authorized network domain in the Pack."
           },
           "presetKeys": {
             "type": "array",
@@ -17603,7 +17739,7 @@
       },
       "PackAgentRuntimeLogDetails": {
         "x-schema-name": "PackAgentRuntimeLogDetails",
-        "description": "Details for pack agent runtime logs",
+        "description": "Details for Pack agent runtime logs",
         "type": "object",
         "required": [
           "type"
@@ -17629,7 +17765,7 @@
       },
       "PackFetcherLogDetails": {
         "x-schema-name": "PackFetcherLogDetails",
-        "description": "Details for pack fetcher logs",
+        "description": "Details for Pack fetcher logs",
         "type": "object",
         "required": [
           "type",
@@ -17654,7 +17790,7 @@
       },
       "PackInvocationLogDetails": {
         "x-schema-name": "PackInvocationLogDetails",
-        "description": "Details for pack invocation logs",
+        "description": "Details for Pack invocation logs",
         "type": "object",
         "required": [
           "type"
@@ -17724,7 +17860,7 @@
       },
       "PackLogDetails": {
         "x-schema-name": "PackLogDetails",
-        "description": "Details for a pack log.",
+        "description": "Details for a Pack log.",
         "oneOf": [
           {
             "$ref": "#/components/schemas/PackFetcherLogDetails"
@@ -18391,7 +18527,7 @@
           "baseUrl": {
             "type": "string",
             "description": "base URL of the fetcher request, with all query parameters stripped off.",
-            "example": "https://coda.io/api"
+            "example": "https://example.com/api"
           },
           "cacheHit": {
             "type": "boolean",
@@ -18405,7 +18541,7 @@
       },
       "PackInternalLog": {
         "x-schema-name": "PackInternalLog",
-        "description": "Coda internal logs from the packs infrastructure. Only visible to Codans.",
+        "description": "Superhuman Docs internal logs from the Packs infrastructure. Only visible to Superhuman employees.",
         "type": "object",
         "required": [
           "type",
@@ -18625,7 +18761,7 @@
       "FeatureSet": {
         "x-schema-name": "FeatureSet",
         "deprecated": true,
-        "description": "Only relevant for original Coda packs.",
+        "description": "Only relevant for original Superhuman Packs.",
         "type": "string",
         "enum": [
           "Basic",
@@ -18657,7 +18793,7 @@
       },
       "FeaturedDocStatus": {
         "x-schema-name": "FeaturedDocStatus",
-        "description": "Status of featured doc in pack listing.",
+        "description": "Status of featured doc in Pack listing.",
         "type": "string",
         "enum": [
           "docInaccessibleOrDoesNotExist",
@@ -18705,7 +18841,7 @@
       },
       "PackSourceCodeVisibility": {
         "x-schema-name": "PackSourceCodeVisibility",
-        "description": "Visibility of a pack's source code.",
+        "description": "Visibility of a Pack's source code.",
         "type": "string",
         "enum": [
           "private",
@@ -18877,7 +19013,7 @@
       },
       "PatchPackSystemConnectionRequest": {
         "x-schema-name": "PatchPackSystemConnectionRequest",
-        "description": "The request to patch pack system connection credentials.",
+        "description": "The request to patch Pack system connection credentials.",
         "oneOf": [
           {
             "$ref": "#/components/schemas/PackConnectionHeaderPatch"
@@ -18941,7 +19077,7 @@
       },
       "SetPackSystemConnectionRequest": {
         "x-schema-name": "SetPackSystemConnectionRequest",
-        "description": "The request to set pack system connection credentials.",
+        "description": "The request to set Pack system connection credentials.",
         "type": "object",
         "additionalProperties": false,
         "required": [
@@ -19101,7 +19237,7 @@
           },
           "packEntrypoints": {
             "type": "array",
-            "description": "Pack entrypoints where this pack is available",
+            "description": "Pack entrypoints where this Pack is available",
             "nullable": true,
             "minItems": 1,
             "items": {
@@ -19128,13 +19264,13 @@
           },
           "agentShortDescription": {
             "type": "string",
-            "description": "A short description for the pack as an agent.",
+            "description": "A short description for the Pack as an agent.",
             "example": "Chat with a tool that can calculate cool geometric formulas like surface area.",
             "maxLength": 256
           },
           "agentDescription": {
             "type": "string",
-            "description": "A full description for the pack as an agent.",
+            "description": "A full description for the Pack as an agent.",
             "example": "Chat with a comprehensive tool that can calculate cool geometric formulas like surface area, volume, and other mathematical operations. This agent can help with complex calculations and provide detailed explanations.",
             "x-allow-empty": true,
             "maxLength": 8192
@@ -19234,7 +19370,7 @@
           "loginId": {
             "type": "string",
             "description": "The email of the Pack maker.",
-            "example": "api@coda.io"
+            "example": "api@example.com"
           }
         }
       },
@@ -19558,7 +19694,7 @@
           },
           "allowOlderSdkVersion": {
             "type": "boolean",
-            "description": "Bypass Coda's protection against SDK version regression when multiple makers build versions."
+            "description": "Bypass the Superhuman Docs protection against SDK version regression when multiple makers build versions."
           }
         }
       },
@@ -19573,7 +19709,7 @@
         "properties": {
           "packVersion": {
             "type": "string",
-            "description": "Which semantic pack version that the release will be created on.",
+            "description": "Which semantic Pack version that the release will be created on.",
             "example": "1.0.0"
           },
           "releaseNotes": {
@@ -20161,7 +20297,7 @@
       },
       "IngestionLimitSettings": {
         "x-schema-name": "IngestionLimitSettings",
-        "description": "Limits for a pack-driven ingestion",
+        "description": "Limits for a Pack-driven ingestion",
         "type": "object",
         "additionalProperties": false,
         "required": [
@@ -20171,14 +20307,14 @@
         "properties": {
           "tableSettings": {
             "type": "object",
-            "description": "Map from table name to per table settings. This may not include every table in the pack. Each setting per table will include an optional maxBytesPerSyncTableOverride that will override the default, an optional excludeIngestionByDefault flag, and an optional parameterLimits dictionary of allowed parameter values.\n",
+            "description": "Map from table name to per table settings. This may not include every table in the Pack. Each setting per table will include an optional maxBytesPerSyncTableOverride that will override the default, an optional excludeIngestionByDefault flag, and an optional parameterLimits dictionary of allowed parameter values.\n",
             "additionalProperties": {
               "$ref": "#/components/schemas/IngestionTableSetting"
             }
           },
           "maxBytesPerSyncTableDefault": {
             "type": "number",
-            "description": "The default bytes limit when ingesting data for a table in the pack. null means no limit.",
+            "description": "The default bytes limit when ingesting data for a table in the Pack. null means no limit.",
             "nullable": true
           },
           "allowedTablesCount": {
@@ -20564,10 +20700,10 @@
       },
       "loginId": {
         "name": "loginId",
-        "description": "Email of a Coda user.",
+        "description": "Email of a Superhuman Docs user.",
         "in": "path",
         "required": true,
-        "example": "api@coda.io",
+        "example": "api@example.com",
         "schema": {
           "type": "string"
         }
@@ -20659,25 +20795,9 @@
           "type": "boolean"
         }
       },
-      "excludeWorkspaceAcls": {
-        "name": "excludeWorkspaceAcls",
-        "description": "Do not include Packs that are only shared with workspaces.",
-        "in": "query",
-        "schema": {
-          "type": "boolean"
-        }
-      },
-      "excludeIndividualAcls": {
-        "name": "excludeIndividualAcls",
-        "description": "Do not include Packs that are only shared with the user individually.",
-        "in": "query",
-        "schema": {
-          "type": "boolean"
-        }
-      },
       "packEntrypoint": {
         "name": "packEntrypoint",
-        "description": "Entrypoint for which this pack call is being made. Used to filter non relevant packs",
+        "description": "Entrypoint for which this Pack call is being made. Used to filter non relevant Packs",
         "in": "query",
         "schema": {
           "$ref": "#/components/schemas/PackEntrypoint"
@@ -20690,6 +20810,19 @@
         "schema": {
           "type": "boolean",
           "default": false
+        }
+      },
+      "packCategories": {
+        "name": "packCategories",
+        "in": "query",
+        "description": "Filter Packs by one or more category types.",
+        "required": false,
+        "explode": false,
+        "schema": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/PackCategoryType"
+          }
         }
       },
       "onlyWorkspaceId": {
@@ -21174,7 +21307,7 @@
     },
     "securitySchemes": {
       "Bearer": {
-        "description": "The Coda API can be accessed using an API token, which can be obtained from [*My account*](https://coda.io/account)\nin Coda. This token should be specified by setting a header as follows.\n\n```Authorization: Bearer <api_token>```\n\nKeep your token safe, as anyone who gets access to it can access your account. Once a token is created\nit cannot be viewed or modified, so don't lose it.\n\nIf you're logged into Coda, you can also query the API directly using your browser. Note that only GET\nendpoints are supported; for anything else, you'll have to use Bearer authentication.\n\n### Restricting token authorization\n\nBy default, bearer tokens created for the Coda API can perform any action that the user who created the token\ncan perform. However, Coda API bearer tokens can also be created with restrictions. These restrictions\ncan limit what objects can be operated on and the types of operations that can be performed.\n\n#### Operation types\n\nThe table below describes the types of authorization restrictions that can be placed on a Coda API token.\n<table>\n  <tr><th>Restriction</th><th>Description</th><th>Allowed HTTP Methods</th></tr>\n  <tr>\n    <td>Read access</td>\n    <td>Allows access to API methods that read the state of an object</td>\n    <td>GET</td>\n  </tr>\n  <tr>\n    <td>Write access</td>\n    <td>Allows access to API methods that write the state of an object</td>\n    <td>POST, PUT, DELETE</td>\n  </tr>\n  <tr>\n    <td>Read and write access</td>\n    <td>Allows access to all methods for an object</td>\n    <td>All</td>\n  </tr>\n</table>\n\n#### Object types\n\nCoda API tokens can be restricted to the following types of objects.\n\n* Documents: Restricts access to only allow API calls for `/docs/${DOC_ID}`\n* Tables: Restricts access to only allow API calls for `/docs/${DOC_ID}/tables/${TABLE_ID}`\n\n#### Special cases\n\nThere are a few special case methods that violate the above restrictions.\n\n* `/whoami`: This method can be called by all Coda API tokens.\n* `/resolveBrowserLink`: This method can be called by all Coda API tokens, but will only return a result\nif the token has access (read or write) to the object referenced by the URL.\n\n#### Feedback\n\nThis feature is under development and we'd love to hear your feedback and bug reports. Please\nvisit us at the [Developers Central](https://community.coda.io/c/developers-central) forum within\nthe Coda Community.\n",
+        "description": "The Superhuman Docs API can be accessed using an API token, which can be obtained from [*My account*](https://coda.io/account)\nin Superhuman Docs. This token should be specified by setting a header as follows.\n\n```Authorization: Bearer <api_token>```\n\nKeep your token safe, as anyone who gets access to it can access your account. Once a token is created\nit cannot be viewed or modified, so don't lose it.\n\nIf you're logged into Superhuman Docs, you can also query the API directly using your browser. Note that only GET\nendpoints are supported; for anything else, you'll have to use Bearer authentication.\n\n### Restricting token authorization\n\nBy default, bearer tokens created for the Superhuman Docs API can perform any action that the user who created the token\ncan perform. However, Superhuman Docs API bearer tokens can also be created with restrictions. These restrictions\ncan limit what objects can be operated on and the types of operations that can be performed.\n\n#### Operation types\n\nThe table below describes the types of authorization restrictions that can be placed on a Superhuman Docs API token.\n<table>\n  <tr><th>Restriction</th><th>Description</th><th>Allowed HTTP Methods</th></tr>\n  <tr>\n    <td>Read access</td>\n    <td>Allows access to API methods that read the state of an object</td>\n    <td>GET</td>\n  </tr>\n  <tr>\n    <td>Write access</td>\n    <td>Allows access to API methods that write the state of an object</td>\n    <td>POST, PUT, DELETE</td>\n  </tr>\n  <tr>\n    <td>Read and write access</td>\n    <td>Allows access to all methods for an object</td>\n    <td>All</td>\n  </tr>\n</table>\n\n#### Object types\n\nSuperhuman Docs API tokens can be restricted to the following types of objects.\n\n* Documents: Restricts access to only allow API calls for `/docs/${DOC_ID}`\n* Tables: Restricts access to only allow API calls for `/docs/${DOC_ID}/tables/${TABLE_ID}`\n\n#### Special cases\n\nThere are a few special case methods that violate the above restrictions.\n\n* `/whoami`: This method can be called by all Superhuman Docs API tokens.\n* `/resolveBrowserLink`: This method can be called by all Superhuman Docs API tokens, but will only return a result\nif the token has access (read or write) to the object referenced by the URL.\n\n#### Feedback\n\nThis feature is under development and we'd love to hear your feedback and bug reports. Please\nvisit us at the [Developers Central](https://connect.superhuman.com/c/developers-central) forum within\nthe Superhuman Community.\n",
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "UUID"
