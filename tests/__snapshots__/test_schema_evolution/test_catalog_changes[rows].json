@@ -663,12 +663,12 @@
                             },
                             "tableUrl": {
                               "description": "The url of the table.",
-                              "example": "https://coda.io/d/_dAbCDeFGH#Teams-and-Tasks_tpqRst-U",
+                              "example": "https://docs.superhuman.com/d/_dAbCDeFGH#Teams-and-Tasks_tpqRst-U",
                               "type": "string"
                             },
                             "url": {
                               "description": "The url of the row.",
-                              "example": "https://coda.io/d/_dAbCDeFGH#Teams-and-Tasks_tpqRst-U/_rui-tuVwxYz",
+                              "example": "https://docs.superhuman.com/d/_dAbCDeFGH#Teams-and-Tasks_tpqRst-U/_rui-tuVwxYz",
                               "type": "string"
                             }
                           },
@@ -1120,12 +1120,12 @@
                                   },
                                   "tableUrl": {
                                     "description": "The url of the table.",
-                                    "example": "https://coda.io/d/_dAbCDeFGH#Teams-and-Tasks_tpqRst-U",
+                                    "example": "https://docs.superhuman.com/d/_dAbCDeFGH#Teams-and-Tasks_tpqRst-U",
                                     "type": "string"
                                   },
                                   "url": {
                                     "description": "The url of the row.",
-                                    "example": "https://coda.io/d/_dAbCDeFGH#Teams-and-Tasks_tpqRst-U/_rui-tuVwxYz",
+                                    "example": "https://docs.superhuman.com/d/_dAbCDeFGH#Teams-and-Tasks_tpqRst-U/_rui-tuVwxYz",
                                     "type": "string"
                                   }
                                 },
@@ -1575,12 +1575,12 @@
                                     },
                                     "tableUrl": {
                                       "description": "The url of the table.",
-                                      "example": "https://coda.io/d/_dAbCDeFGH#Teams-and-Tasks_tpqRst-U",
+                                      "example": "https://docs.superhuman.com/d/_dAbCDeFGH#Teams-and-Tasks_tpqRst-U",
                                       "type": "string"
                                     },
                                     "url": {
                                       "description": "The url of the row.",
-                                      "example": "https://coda.io/d/_dAbCDeFGH#Teams-and-Tasks_tpqRst-U/_rui-tuVwxYz",
+                                      "example": "https://docs.superhuman.com/d/_dAbCDeFGH#Teams-and-Tasks_tpqRst-U/_rui-tuVwxYz",
                                       "type": "string"
                                     }
                                   },
