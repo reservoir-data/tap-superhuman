@@ -929,7 +929,7 @@
                 "properties": {
                   "browserLink": {
                     "description": "Browser-friendly link to the table.",
-                    "example": "https://coda.io/d/_dAbCDeFGH/#Teams-and-Tasks_tpqRst-U",
+                    "example": "https://docs.superhuman.com/d/_dAbCDeFGH/#Teams-and-Tasks_tpqRst-U",
                     "format": "url",
                     "type": [
                       "string",
@@ -938,7 +938,7 @@
                   },
                   "href": {
                     "description": "API link to the table.",
-                    "example": "https://coda.io/apis/v1/docs/AbCDeFGH/tables/grid-pqRst-U",
+                    "example": "https://docs.superhuman.com/apis/v1/docs/AbCDeFGH/tables/grid-pqRst-U",
                     "format": "url",
                     "type": [
                       "string",
@@ -967,7 +967,7 @@
                     "properties": {
                       "browserLink": {
                         "description": "Browser-friendly link to the page.",
-                        "example": "https://coda.io/d/_dAbCDeFGH/Launch-Status_sumnO",
+                        "example": "https://docs.superhuman.com/d/_dAbCDeFGH/Launch-Status_sumnO",
                         "format": "url",
                         "type": [
                           "string",
@@ -976,7 +976,7 @@
                       },
                       "href": {
                         "description": "API link to the page.",
-                        "example": "https://coda.io/apis/v1/docs/AbCDeFGH/pages/canvas-IjkLmnO",
+                        "example": "https://docs.superhuman.com/apis/v1/docs/AbCDeFGH/pages/canvas-IjkLmnO",
                         "format": "url",
                         "type": [
                           "string",
