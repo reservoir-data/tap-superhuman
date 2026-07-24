@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "version": "1.5.0",
+    "version": "1.6.0",
     "title": "Superhuman Docs API",
     "license": {
       "name": "Superhuman Developer Terms",
@@ -4177,6 +4177,9 @@
           },
           {
             "$ref": "#/components/parameters/packEntrypoint"
+          },
+          {
+            "$ref": "#/components/parameters/excludePackCategories"
           }
         ],
         "responses": {
@@ -8858,11 +8861,6 @@
             "description": "If true, indicates that the doc is discoverable.",
             "example": true
           },
-          "earnCredit": {
-            "type": "boolean",
-            "description": "If true, new users may be required to sign in to view content within this document. You will receive Superhuman Docs credit for each user who signs up via your document.\n",
-            "example": true
-          },
           "categoryNames": {
             "type": "array",
             "description": "The names of categories to apply to the document.",
@@ -13100,11 +13098,13 @@
         "type": "string",
         "enum": [
           "table",
-          "view"
+          "view",
+          "database"
         ],
         "x-tsEnumNames": [
           "Table",
-          "View"
+          "View",
+          "Database"
         ]
       },
       "FormulaDetail": {
@@ -20632,10 +20632,10 @@
       },
       "tableTypes": {
         "name": "tableTypes",
-        "description": "Comma-separated list of table types to include in results. If omitted, includes both tables and views.",
+        "description": "Comma-separated list of table types to include in results. If omitted, includes tables, views, and databases.",
         "in": "query",
         "explode": false,
-        "example": "table,view",
+        "example": "table,view,database",
         "schema": {
           "type": "array",
           "items": {
@@ -20816,6 +20816,19 @@
         "name": "packCategories",
         "in": "query",
         "description": "Filter Packs by one or more category types.",
+        "required": false,
+        "explode": false,
+        "schema": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/PackCategoryType"
+          }
+        }
+      },
+      "excludePackCategories": {
+        "name": "excludePackCategories",
+        "in": "query",
+        "description": "Exclude Packs of one or more category types. Categories not listed stay visible.",
         "required": false,
         "explode": false,
         "schema": {
