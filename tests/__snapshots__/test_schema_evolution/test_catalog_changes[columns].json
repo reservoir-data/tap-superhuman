@@ -1029,7 +1029,8 @@
                     "x-schema-name": "TableType",
                     "x-tsEnumNames": [
                       "Table",
-                      "View"
+                      "View",
+                      "Database"
                     ]
                   },
                   "type": {
