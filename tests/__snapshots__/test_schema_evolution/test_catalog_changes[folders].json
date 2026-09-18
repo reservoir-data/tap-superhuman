@@ -1,0 +1,356 @@
+{
+  "key_properties": [
+    "id"
+  ],
+  "metadata": [
+    {
+      "breadcrumb": [
+        "properties",
+        "id"
+      ],
+      "metadata": {
+        "inclusion": "automatic"
+      }
+    },
+    {
+      "breadcrumb": [
+        "properties",
+        "type"
+      ],
+      "metadata": {
+        "inclusion": "available"
+      }
+    },
+    {
+      "breadcrumb": [
+        "properties",
+        "name"
+      ],
+      "metadata": {
+        "inclusion": "available"
+      }
+    },
+    {
+      "breadcrumb": [
+        "properties",
+        "browserLink"
+      ],
+      "metadata": {
+        "inclusion": "available"
+      }
+    },
+    {
+      "breadcrumb": [
+        "properties",
+        "description"
+      ],
+      "metadata": {
+        "inclusion": "available"
+      }
+    },
+    {
+      "breadcrumb": [
+        "properties",
+        "icon"
+      ],
+      "metadata": {
+        "inclusion": "available"
+      }
+    },
+    {
+      "breadcrumb": [
+        "properties",
+        "icon",
+        "properties",
+        "name"
+      ],
+      "metadata": {
+        "inclusion": "available"
+      }
+    },
+    {
+      "breadcrumb": [
+        "properties",
+        "icon",
+        "properties",
+        "type"
+      ],
+      "metadata": {
+        "inclusion": "available"
+      }
+    },
+    {
+      "breadcrumb": [
+        "properties",
+        "icon",
+        "properties",
+        "browserLink"
+      ],
+      "metadata": {
+        "inclusion": "available"
+      }
+    },
+    {
+      "breadcrumb": [
+        "properties",
+        "iconColor"
+      ],
+      "metadata": {
+        "inclusion": "available"
+      }
+    },
+    {
+      "breadcrumb": [
+        "properties",
+        "createdAt"
+      ],
+      "metadata": {
+        "inclusion": "available"
+      }
+    },
+    {
+      "breadcrumb": [
+        "properties",
+        "canEdit"
+      ],
+      "metadata": {
+        "inclusion": "available"
+      }
+    },
+    {
+      "breadcrumb": [
+        "properties",
+        "workspace"
+      ],
+      "metadata": {
+        "inclusion": "available"
+      }
+    },
+    {
+      "breadcrumb": [
+        "properties",
+        "workspace",
+        "properties",
+        "id"
+      ],
+      "metadata": {
+        "inclusion": "available"
+      }
+    },
+    {
+      "breadcrumb": [
+        "properties",
+        "workspace",
+        "properties",
+        "type"
+      ],
+      "metadata": {
+        "inclusion": "available"
+      }
+    },
+    {
+      "breadcrumb": [
+        "properties",
+        "workspace",
+        "properties",
+        "organizationId"
+      ],
+      "metadata": {
+        "inclusion": "available"
+      }
+    },
+    {
+      "breadcrumb": [
+        "properties",
+        "workspace",
+        "properties",
+        "browserLink"
+      ],
+      "metadata": {
+        "inclusion": "available"
+      }
+    },
+    {
+      "breadcrumb": [
+        "properties",
+        "workspace",
+        "properties",
+        "name"
+      ],
+      "metadata": {
+        "inclusion": "available"
+      }
+    },
+    {
+      "breadcrumb": [],
+      "metadata": {
+        "inclusion": "available",
+        "selected": true,
+        "selected-by-default": true,
+        "table-key-properties": [
+          "id"
+        ]
+      }
+    }
+  ],
+  "replication_method": "FULL_TABLE",
+  "schema": {
+    "additionalProperties": false,
+    "description": "A Superhuman Docs folder.",
+    "properties": {
+      "browserLink": {
+        "description": "Browser-friendly link to the folder.",
+        "format": "url",
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "canEdit": {
+        "description": "Whether the folder settings can be edited. E.g., some folder types (like personal folders - \"My Docs\") cannot be edited.",
+        "type": [
+          "boolean",
+          "null"
+        ]
+      },
+      "createdAt": {
+        "description": "Timestamp for when the folder was created.",
+        "format": "date-time",
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "description": {
+        "description": "The description of the folder.",
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "icon": {
+        "additionalProperties": false,
+        "description": "Info about the icon.",
+        "properties": {
+          "browserLink": {
+            "description": "Browser-friendly link to an icon.",
+            "format": "url",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "description": "Name of the icon.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "type": {
+            "description": "MIME type of the icon",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "type",
+          "browserLink"
+        ],
+        "type": [
+          "object",
+          "null"
+        ]
+      },
+      "iconColor": {
+        "description": "Color scheme for folder icons.",
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "id": {
+        "description": "ID of the Superhuman Docs folder.",
+        "type": "string"
+      },
+      "name": {
+        "description": "The name of the folder.",
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "type": {
+        "description": "The type of this resource.",
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "workspace": {
+        "additionalProperties": false,
+        "description": "Reference to a Superhuman Docs workspace.",
+        "properties": {
+          "browserLink": {
+            "description": "Browser-friendly link to the Superhuman Docs workspace.",
+            "format": "url",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "id": {
+            "description": "ID of the Superhuman Docs workspace.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "description": "Name of the workspace; included if the user has access to the workspace.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "organizationId": {
+            "description": "ID of the organization bound to this workspace, if any.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "type": {
+            "description": "The type of this resource.",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "browserLink"
+        ],
+        "type": [
+          "object",
+          "null"
+        ]
+      }
+    },
+    "required": [
+      "id",
+      "type",
+      "name",
+      "browserLink",
+      "workspace"
+    ],
+    "type": "object"
+  },
+  "stream": "folders",
+  "tap_stream_id": "folders"
+}

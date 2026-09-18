@@ -38,4 +38,6 @@ class TapSuperhuman(Tap):
             streams.Tables(tap=self),
             streams.Columns(tap=self),
             streams.Rows(tap=self),
+            streams.Folders(tap=self),
+            streams.FolderChildren(tap=self),
         ]

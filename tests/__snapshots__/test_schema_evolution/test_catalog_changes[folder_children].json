@@ -1,0 +1,291 @@
+{
+  "key_properties": [
+    "id"
+  ],
+  "metadata": [
+    {
+      "breadcrumb": [
+        "properties",
+        "id"
+      ],
+      "metadata": {
+        "inclusion": "automatic"
+      }
+    },
+    {
+      "breadcrumb": [
+        "properties",
+        "type"
+      ],
+      "metadata": {
+        "inclusion": "available"
+      }
+    },
+    {
+      "breadcrumb": [
+        "properties",
+        "visibility"
+      ],
+      "metadata": {
+        "inclusion": "available"
+      }
+    },
+    {
+      "breadcrumb": [
+        "properties",
+        "name"
+      ],
+      "metadata": {
+        "inclusion": "available"
+      }
+    },
+    {
+      "breadcrumb": [
+        "properties",
+        "browserLink"
+      ],
+      "metadata": {
+        "inclusion": "available"
+      }
+    },
+    {
+      "breadcrumb": [
+        "properties",
+        "description"
+      ],
+      "metadata": {
+        "inclusion": "available"
+      }
+    },
+    {
+      "breadcrumb": [
+        "properties",
+        "iconColor"
+      ],
+      "metadata": {
+        "inclusion": "available"
+      }
+    },
+    {
+      "breadcrumb": [
+        "properties",
+        "createdAt"
+      ],
+      "metadata": {
+        "inclusion": "available"
+      }
+    },
+    {
+      "breadcrumb": [
+        "properties",
+        "canEdit"
+      ],
+      "metadata": {
+        "inclusion": "available"
+      }
+    },
+    {
+      "breadcrumb": [
+        "properties",
+        "workspace"
+      ],
+      "metadata": {
+        "inclusion": "available"
+      }
+    },
+    {
+      "breadcrumb": [
+        "properties",
+        "workspace",
+        "properties",
+        "id"
+      ],
+      "metadata": {
+        "inclusion": "available"
+      }
+    },
+    {
+      "breadcrumb": [
+        "properties",
+        "workspace",
+        "properties",
+        "type"
+      ],
+      "metadata": {
+        "inclusion": "available"
+      }
+    },
+    {
+      "breadcrumb": [
+        "properties",
+        "workspace",
+        "properties",
+        "organizationId"
+      ],
+      "metadata": {
+        "inclusion": "available"
+      }
+    },
+    {
+      "breadcrumb": [
+        "properties",
+        "workspace",
+        "properties",
+        "browserLink"
+      ],
+      "metadata": {
+        "inclusion": "available"
+      }
+    },
+    {
+      "breadcrumb": [
+        "properties",
+        "workspace",
+        "properties",
+        "name"
+      ],
+      "metadata": {
+        "inclusion": "available"
+      }
+    },
+    {
+      "breadcrumb": [],
+      "metadata": {
+        "inclusion": "available",
+        "selected": true,
+        "selected-by-default": true,
+        "table-key-properties": [
+          "id"
+        ]
+      }
+    }
+  ],
+  "replication_method": "FULL_TABLE",
+  "schema": {
+    "additionalProperties": false,
+    "description": "A folder in a children listing. `visible` children carry the full folder metadata; `restricted` children — subfolders the caller cannot access but manages the parent of — expose only `id`, `type`, and `visibility`.\n",
+    "properties": {
+      "browserLink": {
+        "description": "Browser-friendly link to the folder. Absent for `restricted` children.",
+        "format": "url",
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "canEdit": {
+        "description": "Whether the folder settings can be edited.",
+        "type": [
+          "boolean",
+          "null"
+        ]
+      },
+      "createdAt": {
+        "description": "Timestamp for when the folder was created.",
+        "format": "date-time",
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "description": {
+        "description": "The description of the folder.",
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "iconColor": {
+        "description": "Color scheme for folder icons.",
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "id": {
+        "description": "ID of the Superhuman Docs folder.",
+        "type": "string"
+      },
+      "name": {
+        "description": "The name of the folder. Absent for `restricted` children.",
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "type": {
+        "description": "The type of this resource.",
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "visibility": {
+        "description": "Whether the caller can access a folder returned in a children listing.",
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "workspace": {
+        "additionalProperties": false,
+        "description": "Reference to a Superhuman Docs workspace.",
+        "properties": {
+          "browserLink": {
+            "description": "Browser-friendly link to the Superhuman Docs workspace.",
+            "format": "url",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "id": {
+            "description": "ID of the Superhuman Docs workspace.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "description": "Name of the workspace; included if the user has access to the workspace.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "organizationId": {
+            "description": "ID of the organization bound to this workspace, if any.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "type": {
+            "description": "The type of this resource.",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "browserLink"
+        ],
+        "type": [
+          "object",
+          "null"
+        ]
+      }
+    },
+    "required": [
+      "id",
+      "type",
+      "visibility"
+    ],
+    "type": "object"
+  },
+  "stream": "folder_children",
+  "tap_stream_id": "folder_children"
+}

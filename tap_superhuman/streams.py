@@ -279,3 +279,30 @@ class Rows(_TableChild):
         """Initialize `rows` stream."""
         super().__init__(*args, **kwargs)
         self.schema["properties"]["values"].pop("additionalProperties")
+
+
+class Folders(SuperhumanStream):
+    """Superhuman folders."""
+
+    name = "folders"
+    path = "/folders"
+    schema = StreamSchema(OPENAPI_SCHEMA, key="Folder")
+
+    @override
+    def get_child_context(
+        self,
+        record: Record,
+        context: Context | None,
+    ) -> Context | None:
+        return {
+            "folderId": record["id"],
+        }
+
+
+class FolderChildren(SuperhumanStream):
+    """Superhuman folder children."""
+
+    name = "folder_children"
+    path = "/folders/{folderId}/children"
+    parent_stream_type = Folders
+    schema = StreamSchema(OPENAPI_SCHEMA, key="FolderChild")
