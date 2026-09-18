@@ -144,6 +144,17 @@
         "properties",
         "docSize",
         "properties",
+        "baseTableCount"
+      ],
+      "metadata": {
+        "inclusion": "available"
+      }
+    },
+    {
+      "breadcrumb": [
+        "properties",
+        "docSize",
+        "properties",
         "pageCount"
       ],
       "metadata": {
@@ -490,6 +501,13 @@
         "additionalProperties": false,
         "description": "The number of components within a document.",
         "properties": {
+          "baseTableCount": {
+            "description": "The total number of base tables contained within the doc.",
+            "type": [
+              "number",
+              "null"
+            ]
+          },
           "overApiSizeLimit": {
             "description": "If true, indicates that the doc is over the API size limit.",
             "type": [

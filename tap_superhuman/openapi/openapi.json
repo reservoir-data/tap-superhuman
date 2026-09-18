@@ -3104,6 +3104,66 @@
         ]
       }
     },
+    "/folders/{folderId}/children": {
+      "get": {
+        "summary": "List folder children",
+        "description": "Returns the direct child folders of a folder. Subfolders the caller cannot access \u2014 but manages the parent of \u2014 are returned as opaque ids in `restrictedFolderIds`.\n",
+        "operationId": "listFolderChildren",
+        "tags": [
+          "Folders"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/folderId"
+          },
+          {
+            "$ref": "#/components/parameters/limit"
+          },
+          {
+            "$ref": "#/components/parameters/pageToken"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of child folders.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolderChildList"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequestsError"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "label": "Python 3.13",
+            "lang": "python",
+            "source": "import requests\n\nheaders = {'Authorization': 'Bearer <your API token>'}\nuri = 'https://docs.superhuman.com/apis/v1/folders/<your folder id>/children'\nres = requests.get(uri, headers=headers).json()\n\nfor folder in res['items']:\n    print(f'Child: {folder[\"name\"]}')\n"
+          },
+          {
+            "label": "Shell",
+            "lang": "shell",
+            "source": "curl -s -H 'Authorization: Bearer <your API token>' \\\n  'https://docs.superhuman.com/apis/v1/folders/<your folder id>/children' |\n  jq '.items[].name'\n"
+          }
+        ]
+      }
+    },
     "/folders/{folderId}": {
       "get": {
         "summary": "Get folder",
@@ -8833,6 +8893,11 @@
             "description": "The total number of tables and views contained within the doc.",
             "example": 42
           },
+          "baseTableCount": {
+            "type": "number",
+            "description": "The total number of base tables contained within the doc.",
+            "example": 42
+          },
           "pageCount": {
             "type": "number",
             "description": "The total number of page contained within the doc.",
@@ -9314,6 +9379,10 @@
           "icon": {
             "$ref": "#/components/schemas/Icon"
           },
+          "iconColor": {
+            "$ref": "#/components/schemas/FolderIconColor",
+            "description": "Color of the folder icon."
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -9367,6 +9436,120 @@
           }
         }
       },
+      "FolderChildList": {
+        "x-schema-name": "FolderChildList",
+        "description": "List of a folder's direct children.",
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "description": "Direct children of the folder, both accessible and restricted, ordered and paged together. Pagination is driven by `nextPageToken`, so a page may contain fewer than `limit` accessible folders when restricted children take slots.\n",
+            "items": {
+              "$ref": "#/components/schemas/FolderChild"
+            }
+          },
+          "href": {
+            "type": "string",
+            "format": "url",
+            "description": "API link to these results.",
+            "example": "https://docs.superhuman.com/apis/v1/folders/fl-1Ab234/children"
+          },
+          "nextPageToken": {
+            "$ref": "#/components/schemas/nextPageToken"
+          },
+          "nextPageLink": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/nextPageLink"
+              },
+              {
+                "type": "string",
+                "example": "https://docs.superhuman.com/apis/v1/folders/fl-1Ab234/children?pageToken=xyz"
+              }
+            ]
+          }
+        }
+      },
+      "FolderChild": {
+        "x-schema-name": "FolderChild",
+        "description": "A folder in a children listing. `visible` children carry the full folder metadata; `restricted` children \u2014 subfolders the caller cannot access but manages the parent of \u2014 expose only `id`, `type`, and `visibility`.\n",
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "visibility"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "ID of the Superhuman Docs folder.",
+            "example": "fl-1Ab234"
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of this resource.",
+            "enum": [
+              "folder"
+            ],
+            "x-tsType": "Type.Folder"
+          },
+          "visibility": {
+            "$ref": "#/components/schemas/FolderVisibility"
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the folder. Absent for `restricted` children.",
+            "example": "Projects"
+          },
+          "browserLink": {
+            "type": "string",
+            "format": "url",
+            "description": "Browser-friendly link to the folder. Absent for `restricted` children.",
+            "example": "https://docs.superhuman.com/folders/fl-1Ab234"
+          },
+          "description": {
+            "type": "string",
+            "description": "The description of the folder.",
+            "example": "A collection of project docs."
+          },
+          "iconColor": {
+            "$ref": "#/components/schemas/FolderIconColor",
+            "description": "Color of the folder icon."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp for when the folder was created.",
+            "example": "2018-04-11T00:18:57.946Z"
+          },
+          "canEdit": {
+            "type": "boolean",
+            "description": "Whether the folder settings can be edited.",
+            "example": true
+          },
+          "workspace": {
+            "$ref": "#/components/schemas/WorkspaceReference"
+          }
+        }
+      },
+      "FolderVisibility": {
+        "x-schema-name": "FolderVisibility",
+        "description": "Whether the caller can access a folder returned in a children listing.",
+        "type": "string",
+        "enum": [
+          "visible",
+          "restricted"
+        ],
+        "x-tsEnumNames": [
+          "Visible",
+          "Restricted"
+        ]
+      },
       "CreateFolderRequest": {
         "x-schema-name": "CreateFolderRequest",
         "description": "Request for creating a folder.",
@@ -9417,6 +9600,47 @@
         "description": "The result of a folder deletion.",
         "type": "object",
         "additionalProperties": false
+      },
+      "FolderIconColor": {
+        "x-schema-name": "FolderIconColor",
+        "description": "Color scheme for folder icons.",
+        "type": "string",
+        "enum": [
+          "DARK_BLUE",
+          "DARK_YELLOW",
+          "DARK_PURPLE",
+          "DARK_PINK",
+          "DARK_ORANGE",
+          "DARK_GREEN",
+          "DARK_RED",
+          "DARK_GRAY",
+          "LIGHT_BLUE",
+          "LIGHT_YELLOW",
+          "LIGHT_PURPLE",
+          "LIGHT_PINK",
+          "LIGHT_ORANGE",
+          "LIGHT_GREEN",
+          "LIGHT_RED",
+          "LIGHT_GRAY"
+        ],
+        "x-tsEnumNames": [
+          "DarkBlue",
+          "DarkYellow",
+          "DarkPurple",
+          "DarkPink",
+          "DarkOrange",
+          "DarkGreen",
+          "DarkRed",
+          "DarkGray",
+          "LightBlue",
+          "LightYellow",
+          "LightPurple",
+          "LightPink",
+          "LightOrange",
+          "LightGreen",
+          "LightRed",
+          "LightGray"
+        ]
       },
       "PageReference": {
         "x-schema-name": "PageReference",
@@ -15421,6 +15645,10 @@
             "type": "object",
             "description": "Policy associated with the configuration",
             "additionalProperties": true
+          },
+          "hasSharedConnection": {
+            "description": "Whether an org-wide shared connection (client-credentials auth configured once per org) already exists for this configuration. Only meaningful for Packs that support a shared connection; absent/false otherwise. Lets clients determine whether a member can skip the personal-connection step for this configuration.",
+            "type": "boolean"
           }
         }
       },
@@ -16654,6 +16882,10 @@
             "type": "boolean"
           },
           "canConnectAccount": {
+            "type": "boolean"
+          },
+          "usesSystemConnection": {
+            "description": "True when the Pack authenticates via a pack-declared system connection (a single admin-managed credential) and has no per-user default authentication, so members do not need to configure a personal connection to use it.",
             "type": "boolean"
           },
           "organization": {
