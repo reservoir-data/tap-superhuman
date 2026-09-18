@@ -279,3 +279,11 @@ class Rows(_TableChild):
         """Initialize `rows` stream."""
         super().__init__(*args, **kwargs)
         self.schema["properties"]["values"].pop("additionalProperties")
+
+
+class Folders(SuperhumanStream):
+    """Superhuman folders."""
+
+    name = "folders"
+    path = "/folders"
+    schema = StreamSchema(OPENAPI_SCHEMA, key="Folder")
