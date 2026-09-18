@@ -165,17 +165,17 @@ class Formulas(_DocChild):
         super().__init__(*args, **kwargs)
         del self.schema["properties"]["value"]
         self.schema["properties"]["value__string"] = {
-            "description": "A Superhuman result or entity expressed as a primitive type.",  # ruff:ignore[line-too-long]
+            "description": "A Superhuman result or entity expressed as a primitive type.",
             "type": "string",
             "example": "$12.34",
         }
         self.schema["properties"]["value__number"] = {
-            "description": "A Superhuman result or entity expressed as a primitive type.",  # ruff:ignore[line-too-long]
+            "description": "A Superhuman result or entity expressed as a primitive type.",
             "type": "number",
             "example": 12.34,
         }
         self.schema["properties"]["value__boolean"] = {
-            "description": "A Superhuman result or entity expressed as a primitive type.",  # ruff:ignore[line-too-long]
+            "description": "A Superhuman result or entity expressed as a primitive type.",
             "type": "boolean",
             "example": True,
         }
@@ -289,11 +289,7 @@ class Folders(SuperhumanStream):
     schema = StreamSchema(OPENAPI_SCHEMA, key="Folder")
 
     @override
-    def get_child_context(
-        self,
-        record: Record,
-        context: Context | None,
-    ) -> Context | None:
+    def get_child_context(self, record: Record, context: Context | None) -> Context | None:
         return {
             "folderId": record["id"],
         }
