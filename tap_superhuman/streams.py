@@ -288,11 +288,21 @@ class Folders(SuperhumanStream):
     path = "/folders"
     schema = StreamSchema(OPENAPI_SCHEMA, key="Folder")
 
+    @override
+    def get_child_context(
+        self,
+        record: Record,
+        context: Context | None,
+    ) -> Context | None:
+        return {
+            "folderId": record["id"],
+        }
+
 
 class FolderChildren(SuperhumanStream):
     """Superhuman folder children."""
 
     name = "folder_children"
-    path = "/folders/{id}/children"
+    path = "/folders/{folderId}/children"
     parent_stream_type = Folders
     schema = StreamSchema(OPENAPI_SCHEMA, key="FolderChild")
