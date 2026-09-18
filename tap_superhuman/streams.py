@@ -287,3 +287,12 @@ class Folders(SuperhumanStream):
     name = "folders"
     path = "/folders"
     schema = StreamSchema(OPENAPI_SCHEMA, key="Folder")
+
+
+class FolderChildren(SuperhumanStream):
+    """Superhuman folder children."""
+
+    name = "folder_children"
+    path = "/folders/{id}/children"
+    parent_stream_type = Folders
+    schema = StreamSchema(OPENAPI_SCHEMA, key="FolderChild")
